@@ -1,0 +1,2 @@
+# rbgPlayer
+Regular Boardgames Player
