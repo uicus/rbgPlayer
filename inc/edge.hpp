@@ -9,6 +9,7 @@ class node;
 
 class edge{
         reasoner::move label;
+        const node& parent;
         std::unique_ptr<node> target;
     public:
         edge(void)=delete;
@@ -17,7 +18,11 @@ class edge{
         edge& operator=(const edge&)=delete;
         edge& operator=(edge&&)=default;
         ~edge(void)=default;
-        edge(const reasoner::move& label, std::unique_ptr<node>&& target);
+        edge(const reasoner::move& label, const node& parent);
+        void create_target(void);
+        node& get_target(void);
+        const node& get_target(void)const;
+        double get_priority(uint parent_simulations, uint parent_player)const;
 };
 
 #endif
