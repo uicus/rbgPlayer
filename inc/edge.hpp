@@ -6,6 +6,7 @@
 #include"reasoner.hpp"
 
 class node;
+typedef std::tuple<double,uint> priority;
 
 class edge{
         reasoner::move label;
@@ -22,7 +23,7 @@ class edge{
         void create_target(void);
         node& get_target(void);
         const node& get_target(void)const;
-        double get_priority(uint parent_simulations, uint parent_player)const;
+        priority get_priority(uint parent_simulations, uint parent_player)const;
 };
 
 #endif

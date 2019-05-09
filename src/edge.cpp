@@ -1,5 +1,6 @@
 #include"edge.hpp"
 #include"node.hpp"
+#include"constants.hpp"
 
 edge::edge(const reasoner::move& label, const node& parent)
   : label(label)
@@ -18,9 +19,9 @@ node& edge::get_target(void){
     return *target;
 }
 
-double edge::get_priority(uint parent_simulations, uint parent_player)const{
+priority edge::get_priority(uint parent_simulations, uint parent_player)const{
     if(not target)
-        return INFINITY;
+        return {INF,0};
     else
         return target->get_priority(parent_simulations, parent_player);
 }

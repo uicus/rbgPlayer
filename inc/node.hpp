@@ -2,7 +2,6 @@
 #define NODE
 
 #include<vector>
-#include<random>
 
 #include"edge.hpp"
 #include"reasoner.hpp"
@@ -10,6 +9,7 @@
 #include"simulation_result.hpp"
 
 typedef std::vector<uint> node_address;
+typedef std::tuple<double,uint> priority;
 
 class node{
         reasoner::resettable_bitarray_stack& cache;
@@ -31,6 +31,7 @@ class node{
         const reasoner::game_state& get_state(void)const;
         const reasoner::game_state& choose_state_for_simulation(node_address& current_address);
         uint children_with_highest_priority(void)const;
+        node(reasoner::resettable_bitarray_stack& cache, reasoner::game_state&& state);
     public:
         node(void)=delete;
         node(const node&)=delete;
@@ -39,12 +40,11 @@ class node{
         node& operator=(node&&)=default;
         ~node(void)=default;
         node(reasoner::resettable_bitarray_stack& cache, const reasoner::game_state& state);
-        node(reasoner::resettable_bitarray_stack& cache, reasoner::game_state&& state);
         node create_node_after_move(const reasoner::move& m)const;
         const node& get_node_by_address(const node_address& address)const;
         void apply_simulation_result_by_address(const simulation_result& result,
                                                 const node_address& address);
-        double get_priority(uint parent_simulations, uint parent_player)const;
+        priority get_priority(uint parent_simulations, uint parent_player)const;
         std::tuple<node_address, const reasoner::game_state&> choose_state_for_simulation(void);
 };
 

@@ -86,11 +86,11 @@ const reasoner::game_state& node::choose_state_for_simulation(node_address& curr
 }
 
 uint node::children_with_highest_priority(void)const{
-    std::vector<std::tuple<double,uint,uint>> candidates;
+    std::vector<std::tuple<priority,uint>> candidates;
     uint current_player = state.get_current_player()-1;
     for(uint i = 0; i < children.size(); ++i)
-        candidates.emplace_back(children[i].get_priority(number_of_simulations, current_player), number_of_attempts, i);
-    return std::get<2>(*(std::max(candidates.begin(), candidates.end())));
+        candidates.emplace_back(children[i].get_priority(number_of_simulations, current_player), i);
+    return std::get<1>(*(std::max(candidates.begin(), candidates.end())));
 }
 
 node node::create_node_after_move(const reasoner::move& m)const{
@@ -112,11 +112,11 @@ const reasoner::game_state& node::get_state(void)const{
     return state;
 }
 
-double node::get_priority(uint parent_simulations, uint parent_player)const{
+priority node::get_priority(uint parent_simulations, uint parent_player)const{
     if(number_of_simulations == 0)
-        return INFINITY;
+        return {INF, number_of_attempts};
     else
-        return average_score(parent_player)+exploration_value(parent_simulations);
+        return {average_score(parent_player)+exploration_value(parent_simulations), number_of_attempts};
 }
 
 std::tuple<node_address, const reasoner::game_state&> node::choose_state_for_simulation(void){
