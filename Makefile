@@ -12,7 +12,7 @@ MAIN_FILE := $(SRC_DIR)/main.cpp
 
 C := g++
 INCLUDE := -I$(INC_DIR) -I$(GEN_DIR)
-COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++11
+COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17
 CFLAGS := $(COMMON_CFLAGS) -s $(INCLUDE)
 
 OBJECTS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
