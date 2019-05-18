@@ -2,11 +2,12 @@
 #define SIMULATION_REQUEST
 
 #include"reasoner.hpp"
-#include<types.hpp>
+#include"types.hpp"
 
 struct simulation_request{
     reasoner::game_state state;
-    uint id;
+    node_address address;
+    uint game_turn;
 };
 
 #endif

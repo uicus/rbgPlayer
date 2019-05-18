@@ -1,5 +1,4 @@
 #include"node.hpp"
-#include"edge.hpp"
 #include"constants.hpp"
 #include<cmath>
 
@@ -104,7 +103,7 @@ priority node::get_priority(uint parent_simulations, uint parent_player)const{
     if(number_of_simulations == 0)
         return {INF, number_of_attempts};
     else
-        return {average_score(parent_player)+exploration_value(parent_simulations), number_of_attempts};
+        return {average_score(parent_player)/EXPECTED_MAX_SCORE+exploration_value(parent_simulations), number_of_attempts};
 }
 
 std::tuple<node_address, const reasoner::game_state&> node::choose_state_for_simulation(uint root_index){

@@ -7,8 +7,7 @@
 #include"reasoner.hpp"
 #include"types.hpp"
 #include"simulation_result.hpp"
-
-class edge;
+#include"edge.hpp"
 
 class node{
         reasoner::resettable_bitarray_stack& cache;
@@ -39,7 +38,7 @@ class node{
         const node& get_node_by_address(const node_address& address)const;
         priority get_priority(uint parent_simulations, uint parent_player)const;
         void apply_simulation_result(const simulation_result& result);
-        std::tuple<node_address, const reasoner::game_state&> choose_state_for_simulation(uint root_index);
+        std::tuple<node_address, const reasoner::game_state&> choose_state_for_simulation(uint root_index); // TODO: address nodes by branches indices
 };
 
 #endif

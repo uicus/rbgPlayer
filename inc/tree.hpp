@@ -5,8 +5,8 @@
 
 #include"reasoner.hpp"
 #include"types.hpp"
+#include"node.hpp"
 
-class node;
 class simulation_result;
 
 class tree{
@@ -22,6 +22,7 @@ class tree{
         ~tree(void)=default;
         tree(const reasoner::game_state& initial_state);
         void apply_simulation_result(const node_address& address, const simulation_result& result);
+        std::tuple<node_address, const reasoner::game_state&> choose_state_for_simulation(void);
 };
 
 #endif

@@ -5,7 +5,8 @@
 
 struct simulation_response{
     simulation_result result;
-    uint id;
+    node_address address;
+    uint game_turn;
 };
 
 #endif
