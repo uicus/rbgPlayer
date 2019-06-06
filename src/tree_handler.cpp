@@ -14,9 +14,14 @@ tree_handler::tree_handler(const reasoner::game_state& initial_state, concurrent
 void tree_handler::create_more_requests(){
     uint created_requests_so_far = 0;
     while(requests.size() < MIN_REQUESTS_IN_CHANNEL and created_requests_so_far < MAX_NEW_REQUESTS_PER_ITERATION){
-        auto [address, state] = t.choose_state_for_simulation();
-        requests.emplace_back(simulation_request{std::move(state), std::move(address), game_turn});
-        ++created_requests_so_far;
+        auto find_result = t.choose_state_for_simulation();
+        if(find_result){
+            auto& [address, state] = *find_result;
+            requests.emplace_back(simulation_request{std::move(state), std::move(address), game_turn});
+            ++created_requests_so_far;
+        }
+        else
+            return;
     }
 }
 

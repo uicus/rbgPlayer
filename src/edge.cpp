@@ -7,12 +7,11 @@ edge::edge(const reasoner::move& label, const node& parent, std::vector<node>& n
   , parent(parent)
   , nodes_register(nodes_register){}
 
-uint edge::create_target(void){
+void edge::create_target(void){
     if(not target){
         nodes_register.emplace_back(parent.create_node_after_move(label));
         target = nodes_register.size() - 1;
     }
-    return *target;
 }
 
 const node& edge::get_target(void)const{

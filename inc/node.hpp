@@ -23,8 +23,10 @@ class node{
         void expand_children(void);
         const node& get_node_by_address(const node_address& address, uint current_address_position)const;
         const reasoner::game_state& get_state(void)const;
-        const reasoner::game_state& choose_state_for_simulation(node_address& current_address);
+        std::tuple<const reasoner::game_state&, bool> choose_state_for_simulation(node_address& current_address);
         uint children_with_highest_priority(void)const;
+        void apply_simulation_result(const simulation_result& result);
+        void apply_simulation_result_for_address(const simulation_result& result, const node_address& address, uint current_address_position);
         node(reasoner::resettable_bitarray_stack& cache, reasoner::game_state&& state, std::vector<node>& nodes_register);
     public:
         node(void)=delete;
@@ -37,8 +39,8 @@ class node{
         node create_node_after_move(const reasoner::move& m)const;
         const node& get_node_by_address(const node_address& address)const;
         priority get_priority(uint parent_simulations, uint parent_player)const;
-        void apply_simulation_result(const simulation_result& result);
-        std::tuple<node_address, const reasoner::game_state&> choose_state_for_simulation(uint root_index); // TODO: address nodes by branches indices
+        std::optional<std::tuple<node_address, const reasoner::game_state&>> choose_state_for_simulation(void);
+        void apply_simulation_result_for_address(const simulation_result& result, const node_address& address);
 };
 
 #endif

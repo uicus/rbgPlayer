@@ -22,7 +22,7 @@ class edge{
         edge& operator=(edge&&)=default;
         ~edge(void)=default;
         edge(const reasoner::move& label, const node& parent, std::vector<node>& nodes_register);
-        uint create_target(void);
+        void create_target(void);
         node& get_target(void);
         const node& get_target(void)const;
         priority get_priority(uint parent_simulations, uint parent_player)const;

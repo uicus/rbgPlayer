@@ -7,10 +7,9 @@ tree::tree(const reasoner::game_state& initial_state){
 }
 
 void tree::apply_simulation_result(const node_address& address, const simulation_result& result){
-    for(const auto el: address)
-        nodes_register[el].apply_simulation_result(result);
+    nodes_register[root_index].apply_simulation_result_for_address(result, address);
 }
 
-std::tuple<node_address, const reasoner::game_state&> tree::choose_state_for_simulation(void){
-    return nodes_register[root_index].choose_state_for_simulation(root_index);
+std::optional<std::tuple<node_address, const reasoner::game_state&>> tree::choose_state_for_simulation(void){
+    return nodes_register[root_index].choose_state_for_simulation();
 }

@@ -58,20 +58,29 @@ void node::apply_simulation_result(const simulation_result& result){
     ++number_of_simulations;
 }
 
-const reasoner::game_state& node::choose_state_for_simulation(node_address& current_address){
+void node::apply_simulation_result_for_address(const simulation_result& result, const node_address& address, uint current_address_position){
+    if(current_address_position < address.size()){
+        apply_simulation_result(result);
+        (*children)[address[current_address_position]]
+            .get_target()
+            .apply_simulation_result_for_address(result, address, current_address_position+1);
+    }
+}
+
+std::tuple<const reasoner::game_state&, bool> node::choose_state_for_simulation(node_address& current_address){
     if(number_of_attempts==0){
         ++number_of_attempts;
-        return state;
+        return std::make_tuple(state, true);
     }
     else{
         ++number_of_attempts;
         expand_children();
         if(children->empty())
-            return state;
+            return std::make_pair(state, false);
         else{
             uint choice = children_with_highest_priority();
-            uint child_index = (*children)[choice].create_target();
-            current_address.push_back(child_index);
+            (*children)[choice].create_target();
+            current_address.push_back(choice);
             return (*children)[choice].get_target().choose_state_for_simulation(current_address);
         }
     }
@@ -106,9 +115,17 @@ priority node::get_priority(uint parent_simulations, uint parent_player)const{
         return {average_score(parent_player)/EXPECTED_MAX_SCORE+exploration_value(parent_simulations), number_of_attempts};
 }
 
-std::tuple<node_address, const reasoner::game_state&> node::choose_state_for_simulation(uint root_index){
-    node_address result;
-    result.push_back(root_index);
-    const reasoner::game_state& state = choose_state_for_simulation(result);
-    return std::make_tuple(result, state);
+std::optional<std::tuple<node_address, const reasoner::game_state&>> node::choose_state_for_simulation(void){
+    for(uint i=0;i<MAX_TRIES_FOR_NON_TERMINAL_STATE;++i){
+        node_address result;
+        const auto& [state, is_terminal] = choose_state_for_simulation(result);
+        if(is_terminal)
+            return std::make_tuple(result, state);
+        apply_simulation_result(simulation_result(state));
+    }
+    return std::nullopt;
+}
+
+void node::apply_simulation_result_for_address(const simulation_result& result, const node_address& address){
+    apply_simulation_result_for_address(result, address, 0);
 }
