@@ -2,14 +2,21 @@
 #include"node.hpp"
 #include"constants.hpp"
 
-edge::edge(const reasoner::move& label, const node& parent, std::vector<node>& nodes_register)
+edge::edge(const reasoner::move& label, std::vector<node>& nodes_register)
   : label(label)
-  , parent(parent)
   , nodes_register(nodes_register){}
 
-void edge::create_target(void){
+edge edge::clone_edge(std::vector<node>& new_nodes_register)const{
+    edge result(label, new_nodes_register);
+    result.target = target;
+    if(target)
+        new_nodes_register.emplace_back(nodes_register[*target].clone_node(new_nodes_register));
+    return result;
+}
+
+void edge::create_target(const node& source_node){
     if(not target){
-        nodes_register.emplace_back(parent.create_node_after_move(label));
+        nodes_register.emplace_back(source_node.create_node_after_move(label));
         target = nodes_register.size() - 1;
     }
 }
@@ -29,4 +36,19 @@ priority edge::get_priority(uint parent_simulations, uint parent_player)const{
         return {INF,0};
     else
         return nodes_register[*target].get_priority(parent_simulations, parent_player);
+}
+
+bool edge::matches(const reasoner::move& m)const{
+    return label == m;
+}
+
+double edge::average_score(uint player)const{
+    if(not target)
+        return 0.0;
+    else
+        return nodes_register[*target].average_score(player);
+}
+
+const reasoner::move& edge::get_move(void)const{
+    return label;
 }

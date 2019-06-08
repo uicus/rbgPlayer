@@ -17,8 +17,8 @@ class node{
         uint number_of_simulations = 0;
         uint number_of_attempts = 0;
         simulation_result sum_of_scores = {};
+        bool terminal = false;
         void go_to_completion(void);
-        double average_score(uint player)const;
         double exploration_value(uint parent_simulations)const;
         void expand_children(void);
         const node& get_node_by_address(const node_address& address, uint current_address_position)const;
@@ -36,11 +36,15 @@ class node{
         node& operator=(node&&)=default;
         ~node(void)=default;
         node(reasoner::resettable_bitarray_stack& cache, const reasoner::game_state& state, std::vector<node>& nodes_register);
+        node clone_node(std::vector<node>& new_nodes_register)const;
         node create_node_after_move(const reasoner::move& m)const;
         const node& get_node_by_address(const node_address& address)const;
         priority get_priority(uint parent_simulations, uint parent_player)const;
+        double average_score(uint player)const;
+        const reasoner::move& choose_best_move(void);
         std::optional<std::tuple<node_address, const reasoner::game_state&>> choose_state_for_simulation(void);
         void apply_simulation_result_for_address(const simulation_result& result, const node_address& address);
+        const node& move_along_the_move(const reasoner::move& m);
 };
 
 #endif

@@ -13,6 +13,8 @@ class tree{
         std::vector<node> nodes_register = {};
         uint root_index = 0;
         reasoner::resettable_bitarray_stack cache = {};
+        void mitigate_pointers_invalidation_during_expansion(void);
+        void mitigate_pointers_invalidation_during_reparentng(std::vector<node>& new_nodes_register)const;
     public:
         tree(void)=delete;
         tree(const tree&)=delete;
@@ -23,6 +25,8 @@ class tree{
         tree(const reasoner::game_state& initial_state);
         void apply_simulation_result(const node_address& address, const simulation_result& result);
         std::optional<std::tuple<node_address, const reasoner::game_state&>> choose_state_for_simulation(void);
+        void reparent_along_move(const reasoner::move& m);
+        const reasoner::move& choose_best_move(void);
 };
 
 #endif

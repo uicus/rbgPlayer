@@ -5,13 +5,7 @@
 
 namespace{
 bool handle_keeper_move(reasoner::game_state& state, reasoner::resettable_bitarray_stack& cache){
-    auto any_move = state.get_any_move(cache);
-    if(any_move){
-        state.apply_move(*any_move);
-        return true;
-    }
-    else
-        return false;
+    return state.apply_any_move(cache);
 }
 
 bool handle_player_move(reasoner::game_state& state, reasoner::resettable_bitarray_stack& cache, std::mt19937& mt){
