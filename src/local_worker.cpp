@@ -6,14 +6,14 @@
 #include"simulator.hpp"
 #include<random>
 
-void run_local_worker(concurrent_queue<simulation_request>& requests,
-                      concurrent_queue<simulation_response>& responses){
+void run_local_worker(concurrent_queue<simulation_request>& requests_from_tree,
+                      concurrent_queue<simulation_response>& responses_to_tree){
     reasoner::resettable_bitarray_stack cache;
     std::random_device d;
     std::mt19937 mt(d());
     while(true){
-        auto request = requests.pop_front();
+        auto request = requests_from_tree.pop_front();
         auto result = perform_simulation(request.state, cache, mt);
-        responses.emplace_back(simulation_response{std::move(result), std::move(request.address), request.game_turn});
+        responses_to_tree.emplace_back(simulation_response{std::move(result), std::move(request.address), request.game_turn});
     }
 }

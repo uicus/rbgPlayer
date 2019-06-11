@@ -6,7 +6,7 @@ class concurrent_queue;
 class simulation_request;
 class simulation_response;
 
-void run_local_worker(concurrent_queue<simulation_request>& requests,
-                      concurrent_queue<simulation_response>& responses);
+void run_local_worker(concurrent_queue<simulation_request>& requests_from_tree,
+                      concurrent_queue<simulation_response>& responses_to_tree);
 
 #endif

@@ -50,9 +50,12 @@ double node::exploration_value(uint parent_simulations)const{
 void node::expand_children(void){
     if(not children){
         children = std::vector<edge>();
-        auto all_moves = state.get_all_moves(cache);
-        for(const auto& m: all_moves)
-            children->emplace_back(m, nodes_register);
+        if(not is_terminal()){
+            auto all_moves = state.get_all_moves(cache);
+            for(const auto& m: all_moves)
+                children->emplace_back(m, nodes_register);
+            terminal = children->empty();
+        }
     }
 }
 
@@ -83,7 +86,7 @@ void node::apply_simulation_result_for_address(const simulation_result& result, 
 std::tuple<const reasoner::game_state&, bool> node::choose_state_for_simulation(node_address& current_address){
     if(number_of_attempts==0){
         ++number_of_attempts;
-        return std::make_tuple(state, not terminal);
+        return std::make_tuple(state, not is_terminal());
     }
     else{
         ++number_of_attempts;
@@ -101,7 +104,7 @@ std::tuple<const reasoner::game_state&, bool> node::choose_state_for_simulation(
 
 uint node::children_with_highest_priority(void)const{
     std::vector<std::tuple<priority,uint>> candidates;
-    uint current_player = state.get_current_player()-1;
+    uint current_player = get_current_player();
     for(uint i = 0; i < children->size(); ++i)
         candidates.emplace_back((*children)[i].get_priority(number_of_simulations, current_player), i);
     return std::get<1>(*(std::max_element(candidates.begin(), candidates.end())));
@@ -117,10 +120,6 @@ const node& node::get_node_by_address(const node_address& address)const{
     return get_node_by_address(address, 0);
 }
 
-const reasoner::game_state& node::get_state(void)const{
-    return state;
-}
-
 priority node::get_priority(uint parent_simulations, uint parent_player)const{
     if(number_of_simulations == 0)
         return {INF, number_of_attempts};
@@ -129,21 +128,22 @@ priority node::get_priority(uint parent_simulations, uint parent_player)const{
 }
 
 const reasoner::move& node::choose_best_move(void){
-    assert(not terminal);
+    assert(not is_terminal());
     expand_children();
-    uint current_player = state.get_current_player()-1;
+    uint current_player = get_current_player();
     std::vector<double> children_to_choose;
     std::transform(children->begin(), children->end(), std::back_inserter(children_to_choose),
         [current_player](const auto& el){return el.average_score(current_player);});
-    auto chosen_child = std::max_element(children_to_choose.begin(), children_to_choose.end());
-    return (*children)[std::distance(children_to_choose.begin(), chosen_child)].get_move();
+    const auto chosen_child = std::max_element(children_to_choose.begin(), children_to_choose.end());
+    const auto choice_number = std::distance(children_to_choose.begin(), chosen_child);
+    return (*children)[choice_number].get_move();
 }
 
 std::optional<std::tuple<node_address, const reasoner::game_state&>> node::choose_state_for_simulation(void){
     for(uint i=0;i<MAX_TRIES_FOR_NON_TERMINAL_STATE;++i){
         node_address result;
-        const auto& [state, is_terminal] = choose_state_for_simulation(result);
-        if(is_terminal)
+        const auto& [state, suitable_for_simulation] = choose_state_for_simulation(result);
+        if(suitable_for_simulation)
             return std::make_tuple(result, state);
         apply_simulation_result(simulation_result(state));
     }
@@ -154,13 +154,17 @@ void node::apply_simulation_result_for_address(const simulation_result& result, 
     apply_simulation_result_for_address(result, address, 0);
 }
 
-const node& node::move_along_the_move(const reasoner::move& m){
+uint node::get_node_index_by_move(const reasoner::move& m){
     expand_children();
-    for(auto& el: *children){
-        if(el.matches(m)){
-            el.create_target(*this);
-            return el.get_target();
-        }
-    }
-    assert(false); // told to move along nonexistant edge -- probably server bug
+    const auto result = std::find_if(children->begin(), children->end(), [&m](const auto& el){return el.matches(m);});
+    assert(result != children->end()); // told to move along nonexistant edge -- probably server bug
+    return std::distance(children->begin(), result);
+}
+
+uint node::get_current_player(void)const{
+    return state.get_current_player()-1;
+}
+
+bool node::is_terminal(void)const{
+    return terminal;
 }

@@ -8,7 +8,8 @@ tree::tree(const reasoner::game_state& initial_state){
 }
 
 void tree::mitigate_pointers_invalidation_during_expansion(void){
-    nodes_register.reserve(nodes_register.size()+MAX_TRIES_FOR_NON_TERMINAL_STATE);
+    if(nodes_register.capacity()<nodes_register.size()+MAX_TRIES_FOR_NON_TERMINAL_STATE)
+        nodes_register.reserve(2*nodes_register.size()+MAX_TRIES_FOR_NON_TERMINAL_STATE);
 }
 
 void tree::mitigate_pointers_invalidation_during_reparentng(std::vector<node>& new_nodes_register)const{
@@ -24,15 +25,26 @@ std::optional<std::tuple<node_address, const reasoner::game_state&>> tree::choos
     return nodes_register[root_index].choose_state_for_simulation();
 }
 
-void tree::reparent_along_move(const reasoner::move& m){
+uint tree::reparent_along_move(const reasoner::move& m){
     std::vector<node> new_nodes_register;
     mitigate_pointers_invalidation_during_reparentng(new_nodes_register);
-    const node& new_root = new_nodes_register[root_index].move_along_the_move(m);
+    const auto move_index = nodes_register[root_index].get_node_index_by_move(m);
+    const auto& new_root = nodes_register[root_index].get_node_by_address({move_index});
     new_nodes_register.emplace_back(new_root.clone_node(new_nodes_register));
     root_index = new_nodes_register.size()-1;
     std::swap(new_nodes_register, nodes_register);
+    return move_index;
 }
 
 const reasoner::move& tree::choose_best_move(void){
     return nodes_register[root_index].choose_best_move();
+}
+
+game_status_indication tree::get_status(uint own_index)const{
+    if(nodes_register[root_index].is_terminal())
+        return end_game;
+    else if(nodes_register[root_index].get_current_player() == own_index)
+        return own_turn;
+    else
+        return opponent_turn;
 }

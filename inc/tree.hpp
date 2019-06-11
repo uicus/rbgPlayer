@@ -10,6 +10,7 @@
 class simulation_result;
 
 class tree{
+        uint own_player_index;
         std::vector<node> nodes_register = {};
         uint root_index = 0;
         reasoner::resettable_bitarray_stack cache = {};
@@ -25,8 +26,9 @@ class tree{
         tree(const reasoner::game_state& initial_state);
         void apply_simulation_result(const node_address& address, const simulation_result& result);
         std::optional<std::tuple<node_address, const reasoner::game_state&>> choose_state_for_simulation(void);
-        void reparent_along_move(const reasoner::move& m);
+        uint reparent_along_move(const reasoner::move& m);
         const reasoner::move& choose_best_move(void);
+        game_status_indication get_status(uint own_index)const;
 };
 
 #endif
