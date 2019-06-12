@@ -8,6 +8,7 @@ OBJ_DIR := obj
 BIN_DIR := bin
 DEP_DIR := dep
 GEN_DIR := gen
+REASONER := reasoner
 MAIN_FILE := $(SRC_DIR)/main.cpp
 
 C := g++
@@ -16,7 +17,9 @@ COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17
 CFLAGS := $(COMMON_CFLAGS) -s $(INCLUDE)
 
 OBJECTS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
+OBJECTS := $(OBJECTS) $(OBJ_DIR)/$(REASONER).o
 DEPFILES := $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(wildcard $(SRC_DIR)/*.cpp))
+DEPFILES := $(DEPFILES) $(DEP_DIR)/$(REASONER).d
 
 all: $(TARGET)
 
@@ -24,8 +27,14 @@ ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
 endif
 
+$(OBJ_DIR)/%.o: $(GEN_DIR)/%.cpp $(DEP_DIR)/%.d | $(OBJ_DIR)
+	$(C) $(CFLAGS) -c $< -o $@
+
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEP_DIR)/%.d | $(OBJ_DIR)
 	$(C) $(CFLAGS) -c $< -o $@
+
+$(DEP_DIR)/%.d: $(GEN_DIR)/%.cpp | $(DEP_DIR)
+	$(C) $(CFLAGS) -MM -MT '$(patsubst $(GEN_DIR)/%.cpp,$(OBJ_DIR)/%.o,$<) $@' $< -MF $@
 
 $(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp | $(DEP_DIR)
 	$(C) $(CFLAGS) -MM -MT '$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$<) $@' $< -MF $@

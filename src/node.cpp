@@ -25,8 +25,8 @@ node node::clone_node(std::vector<node>& new_nodes_register)const{
     result.terminal = terminal;
     if(children){
         result.children = std::vector<edge>();
-        for(const auto& el: *children)
-            result.children->emplace_back(el.clone_edge(new_nodes_register));
+        std::transform(children->begin(), children->end(), std::back_inserter(*result.children),
+            [&new_nodes_register](const auto& el){return el.clone_edge(new_nodes_register);});
     }
     return result;
 }
@@ -52,8 +52,8 @@ void node::expand_children(void){
         children = std::vector<edge>();
         if(not is_terminal()){
             auto all_moves = state.get_all_moves(cache);
-            for(const auto& m: all_moves)
-                children->emplace_back(m, nodes_register);
+            std::transform(all_moves.begin(), all_moves.end(), std::back_inserter(*children),
+                [this](const auto& el){return edge(el, nodes_register);});
             terminal = children->empty();
         }
     }
@@ -103,11 +103,11 @@ std::tuple<const reasoner::game_state&, bool> node::choose_state_for_simulation(
 }
 
 uint node::children_with_highest_priority(void)const{
-    std::vector<std::tuple<priority,uint>> candidates;
+    std::vector<priority> candidates;
     uint current_player = get_current_player();
-    for(uint i = 0; i < children->size(); ++i)
-        candidates.emplace_back((*children)[i].get_priority(number_of_simulations, current_player), i);
-    return std::get<1>(*(std::max_element(candidates.begin(), candidates.end())));
+    std::transform(children->begin(), children->end(), std::back_inserter(candidates),
+        [this, current_player](const auto& el){return el.get_priority(number_of_simulations, current_player);});
+    return std::distance(candidates.begin(), std::max_element(candidates.begin(), candidates.end()));
 }
 
 node node::create_node_after_move(const reasoner::move& m)const{

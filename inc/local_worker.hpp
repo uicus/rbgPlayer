@@ -4,9 +4,9 @@
 template<typename T>
 class concurrent_queue;
 class simulation_request;
-class simulation_response;
+class tree_indication;
 
-void run_local_worker(concurrent_queue<simulation_request>& requests_from_tree,
-                      concurrent_queue<simulation_response>& responses_to_tree);
+void run_local_worker(concurrent_queue<tree_indication>& responses_to_tree,
+                      concurrent_queue<simulation_request>& requests_from_tree);
 
 #endif

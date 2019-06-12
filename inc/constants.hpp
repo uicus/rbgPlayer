@@ -10,5 +10,7 @@ constexpr double INF = 1000000000.0;
 constexpr uint MIN_REQUESTS_IN_CHANNEL = 20;
 constexpr uint MAX_NEW_REQUESTS_PER_ITERATION = 40;
 constexpr uint MAX_TRIES_FOR_NON_TERMINAL_STATE = 40;
+constexpr uint MILISECONDS_PER_MOVE = 1000;
+constexpr uint BUFFER_TIME = 10;
 
 #endif
