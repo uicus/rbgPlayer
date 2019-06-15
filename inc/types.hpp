@@ -2,6 +2,7 @@
 #define TYPES
 
 #include<tuple>
+#include<vector>
 
 typedef unsigned int uint;
 typedef std::vector<uint> node_address;

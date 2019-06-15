@@ -17,9 +17,9 @@ COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17
 CFLAGS := $(COMMON_CFLAGS) -s $(INCLUDE)
 
 OBJECTS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
-OBJECTS := $(OBJECTS) $(OBJ_DIR)/$(REASONER).o
+OBJECTS := $(OBJ_DIR)/$(REASONER).o $(OBJECTS)
 DEPFILES := $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(wildcard $(SRC_DIR)/*.cpp))
-DEPFILES := $(DEPFILES) $(DEP_DIR)/$(REASONER).d
+DEPFILES := $(DEP_DIR)/$(REASONER).d $(DEPFILES)
 
 all: $(TARGET)
 

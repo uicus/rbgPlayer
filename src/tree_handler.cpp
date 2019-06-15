@@ -70,3 +70,7 @@ void tree_handler::handle_move_indication(const reasoner::move& m){
     moves_history.emplace_back(t.reparent_along_move(m));
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
 }
+
+void tree_handler::handle_status_request(void){
+    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
+}
