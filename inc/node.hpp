@@ -17,7 +17,6 @@ class node{
         uint number_of_simulations = 0;
         uint number_of_attempts = 0;
         simulation_result sum_of_scores = {};
-        bool terminal = false;
         void go_to_completion(void);
         double exploration_value(uint parent_simulations)const;
         void expand_children(void);

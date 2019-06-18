@@ -22,7 +22,6 @@ node node::clone_node(std::vector<node>& new_nodes_register)const{
     result.number_of_simulations = number_of_simulations;
     result.number_of_attempts = number_of_attempts;
     result.sum_of_scores = sum_of_scores;
-    result.terminal = terminal;
     if(children){
         result.children = std::vector<edge>();
         std::transform(children->begin(), children->end(), std::back_inserter(*result.children),
@@ -34,7 +33,7 @@ node node::clone_node(std::vector<node>& new_nodes_register)const{
 void node::go_to_completion(void){
     while(state.get_current_player() == KEEPER)
         if(not state.apply_any_move(cache)){
-            terminal = true;
+            children = std::vector<edge>();
             break;
         }
 }
@@ -44,7 +43,7 @@ double node::average_score(uint player)const{
 }
 
 double node::exploration_value(uint parent_simulations)const{
-    return EXPLORATION_CONSTANT*sqrt(log(double(parent_simulations))/double(number_of_simulations));
+    return EXPLORATION_CONSTANT*sqrt(log(double(parent_simulations))/double(number_of_attempts));
 }
 
 void node::expand_children(void){
@@ -54,7 +53,6 @@ void node::expand_children(void){
             auto all_moves = state.get_all_moves(cache);
             std::transform(all_moves.begin(), all_moves.end(), std::back_inserter(*children),
                 [this](const auto& el){return edge(el, nodes_register);});
-            terminal = children->empty();
         }
     }
 }
@@ -89,12 +87,14 @@ std::tuple<const reasoner::game_state&, bool> node::choose_state_for_simulation(
         return std::make_tuple(state, not is_terminal());
     }
     else{
-        ++number_of_attempts;
         expand_children();
-        if(children->empty())
+        if(children->empty()){
+            ++number_of_attempts;
             return std::make_pair(state, false);
+        }
         else{
             uint choice = children_with_highest_priority();
+            ++number_of_attempts;
             (*children)[choice].create_target(*this);
             current_address.push_back(choice);
             return (*children)[choice].get_target().choose_state_for_simulation(current_address);
@@ -106,7 +106,7 @@ uint node::children_with_highest_priority(void)const{
     std::vector<priority> candidates;
     uint current_player = get_current_player();
     std::transform(children->begin(), children->end(), std::back_inserter(candidates),
-        [this, current_player](const auto& el){return el.get_priority(number_of_simulations, current_player);});
+        [this, current_player](const auto& el){return el.get_priority(number_of_attempts, current_player);});
     return std::distance(candidates.begin(), std::max_element(candidates.begin(), candidates.end()));
 }
 
@@ -121,10 +121,10 @@ const node& node::get_node_by_address(const node_address& address)const{
 }
 
 priority node::get_priority(uint parent_simulations, uint parent_player)const{
-    if(number_of_simulations == 0)
-        return {INF, number_of_attempts};
+    if(number_of_attempts == 0)
+        return INF;
     else
-        return {average_score(parent_player)/EXPECTED_MAX_SCORE+exploration_value(parent_simulations), number_of_attempts};
+        return average_score(parent_player)/EXPECTED_MAX_SCORE+exploration_value(parent_simulations);
 }
 
 const reasoner::move& node::choose_best_move(void){
@@ -166,5 +166,5 @@ uint node::get_current_player(void)const{
 }
 
 bool node::is_terminal(void)const{
-    return terminal;
+    return children and children->empty();
 }

@@ -33,7 +33,7 @@ node& edge::get_target(void){
 
 priority edge::get_priority(uint parent_simulations, uint parent_player)const{
     if(not target)
-        return {INF,0};
+        return INF;
     else
         return nodes_register[*target].get_priority(parent_simulations, parent_player);
 }
