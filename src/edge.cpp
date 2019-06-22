@@ -1,52 +1,50 @@
 #include"edge.hpp"
 #include"node.hpp"
 #include"constants.hpp"
+#include"state_tracker.hpp"
 
-edge::edge(const reasoner::move& label, std::vector<node>& nodes_register)
-  : label(label)
-  , nodes_register(nodes_register){}
+edge::edge(const reasoner::move& label)
+  : label(label){}
 
-edge edge::clone_edge(std::vector<node>& new_nodes_register)const{
-    edge result(label, new_nodes_register);
+edge edge::clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
+    edge result(label);
     result.target = target;
     if(target)
-        new_nodes_register.emplace_back(nodes_register[*target].clone_node(new_nodes_register));
+        new_nodes_register.emplace_back(tracker.get_node(*target).clone_node(new_nodes_register, tracker));
     return result;
 }
 
-void edge::create_target(const node& source_node){
-    if(not target){
-        nodes_register.emplace_back(source_node.create_node_after_move(label));
-        target = nodes_register.size() - 1;
-    }
+void edge::create_target(state_tracker& tracker){
+    if(not target)
+        target = tracker.add_node_to_register();
 }
 
-const node& edge::get_target(void)const{
+const node& edge::get_target(const state_tracker& tracker)const{
     assert(target);
-    return nodes_register[*target];
+    return tracker.get_node(*target);
 }
 
-node& edge::get_target(void){
+node& edge::get_target(state_tracker& tracker){
     assert(target);
-    return nodes_register[*target];
+    return tracker.get_node(*target);
 }
 
-priority edge::get_priority(uint parent_simulations, uint parent_player)const{
+priority edge::get_priority(uint parent_simulations, const state_tracker& tracker)const{
     if(not target)
         return INF;
     else
-        return nodes_register[*target].get_priority(parent_simulations, parent_player);
+        return get_target(tracker).get_priority(parent_simulations, tracker.get_current_player());
 }
 
 bool edge::matches(const reasoner::move& m)const{
     return label == m;
 }
 
-double edge::average_score(uint player)const{
+double edge::average_score(const state_tracker& tracker)const{
     if(not target)
         return 0.0;
     else
-        return nodes_register[*target].average_score(player);
+        return get_target(tracker).average_score(tracker.get_current_player());
 }
 
 const reasoner::move& edge::get_move(void)const{

@@ -29,14 +29,9 @@ tree_handler::tree_handler(const reasoner::game_state& initial_state,
 void tree_handler::create_more_requests(){
     uint created_requests_so_far = 0;
     while(requests_to_workers.size() < MIN_REQUESTS_IN_CHANNEL and created_requests_so_far < MAX_NEW_REQUESTS_PER_ITERATION){
-        auto find_result = t.choose_state_for_simulation();
-        if(find_result){
-            auto& [address, state] = *find_result;
-            requests_to_workers.emplace_back(simulation_request{std::move(state), std::move(address), game_turn});
-            ++created_requests_so_far;
-        }
-        else
-            return;
+        auto&& [address, state] = t.choose_state_for_simulation();
+        requests_to_workers.emplace_back(simulation_request{std::move(state), std::move(address), game_turn});
+        ++created_requests_so_far;
     }
 }
 
@@ -63,7 +58,9 @@ void tree_handler::handle_simulation_response(const simulation_response& respons
 
 void tree_handler::handle_move_request(void){
     const auto& chosen_move = t.choose_best_move();
+    moves_history.emplace_back(t.reparent_along_move(chosen_move));
     responses_to_server.emplace_back(client_response{chosen_move});
+    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
 }
 
 void tree_handler::handle_move_indication(const reasoner::move& m){

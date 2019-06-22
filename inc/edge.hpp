@@ -1,17 +1,16 @@
 #ifndef EDGE
 #define EDGE
 
-#include<vector>
 #include<optional>
 
 #include"reasoner.hpp"
 #include"types.hpp"
 
+class state_tracker;
 class node;
 
 class edge{
         reasoner::move label;
-        std::vector<node>& nodes_register;
         std::optional<uint> target = std::nullopt;
     public:
         edge(void)=delete;
@@ -20,14 +19,14 @@ class edge{
         edge& operator=(const edge&)=delete;
         edge& operator=(edge&&)=default;
         ~edge(void)=default;
-        edge(const reasoner::move& label, std::vector<node>& nodes_register);
-        edge clone_edge(std::vector<node>& new_nodes_register)const;
-        void create_target(const node& source_node);
-        node& get_target(void);
-        const node& get_target(void)const;
-        priority get_priority(uint parent_simulations, uint parent_player)const;
+        edge(const reasoner::move& label);
+        edge clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
+        void create_target(state_tracker& tracker);
+        node& get_target(state_tracker& tracker);
+        const node& get_target(const state_tracker& tracker)const;
+        priority get_priority(uint parent_simulations, const state_tracker& tracker)const;
         bool matches(const reasoner::move& m)const;
-        double average_score(uint player)const;
+        double average_score(const state_tracker& tracker)const;
         const reasoner::move& get_move(void)const;
 };
 

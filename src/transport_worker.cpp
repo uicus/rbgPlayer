@@ -28,28 +28,35 @@ reasoner::move get_move_from_player(concurrent_queue<client_response>& responses
     return std::get<reasoner::move>(response.content);
 }
 
-reasoner::move forward_move_from_player_to_server(own_moves_sender& oms,
-                                                  concurrent_queue<client_response>& responses_from_tree){
+void forward_move_from_player_to_server(own_moves_sender& oms,
+                                        concurrent_queue<client_response>& responses_from_tree){
     auto m = get_move_from_player(responses_from_tree);
     oms.send_move(m);
-    return m;
 }
 
-std::optional<reasoner::move> get_move(remote_moves_receiver& rmr,
-                                       own_moves_sender& oms,
-                                       game_status_indication status,
-                                       concurrent_queue<tree_indication>& tree_indications,
-                                       concurrent_queue<client_response>& responses_from_tree){
+void forward_move_from_server_to_player(remote_moves_receiver& rmr,
+                                        concurrent_queue<tree_indication>& tree_indications){
+    auto m = rmr.receive_move();
+    tree_indications.emplace_back(tree_indication{m});
+}
+
+void handle_turn(remote_moves_receiver& rmr,
+                 own_moves_sender& oms,
+                 game_status_indication status,
+                 concurrent_queue<tree_indication>& tree_indications,
+                 concurrent_queue<client_response>& responses_from_tree){
     switch(status){
         case own_turn:
             std::this_thread::sleep_for(std::chrono::milliseconds(MILISECONDS_PER_MOVE-BUFFER_TIME));
             tree_indications.emplace_back(tree_indication{move_request{}});
-            return forward_move_from_player_to_server(oms, responses_from_tree);
+            forward_move_from_player_to_server(oms, responses_from_tree);
+            break;
         case opponent_turn:
-            return rmr.receive_move();
+            forward_move_from_server_to_player(rmr, tree_indications);
+            break;
         case end_game:
         default:
-            return std::nullopt;
+            assert(false);
     }
 }
 }
@@ -59,15 +66,12 @@ void run_transport_worker(remote_moves_receiver& rmr,
                           concurrent_queue<tree_indication>& tree_indications,
                           concurrent_queue<client_response>& responses_from_tree){
     game_status_indication current_status = get_initial_game_status(tree_indications, responses_from_tree);
-    while(true){
-        auto m = get_move(rmr,
-                          oms,
-                          current_status,
-                          tree_indications,
-                          responses_from_tree);
-        if(not m)
-            return;
-        tree_indications.emplace_back(tree_indication{std::move(*m)});
+    while(current_status != end_game){
+        handle_turn(rmr,
+                    oms,
+                    current_status,
+                    tree_indications,
+                    responses_from_tree);
         current_status = get_game_status(responses_from_tree);
     }
 }
