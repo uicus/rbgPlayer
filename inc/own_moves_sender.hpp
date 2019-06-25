@@ -1,12 +1,16 @@
 #ifndef OWN_MOVES_SENDER
 #define OWN_MOVES_SENDER
 
+#include<string>
+
 namespace reasoner{
     class move;
 }
 
 class own_moves_sender{
         int socket_descriptor;
+        void send_text(const std::string& t);
+        void write_all(const char *str, uint len);
     public:
         own_moves_sender(void)=delete;
         own_moves_sender(const own_moves_sender&)=delete;
