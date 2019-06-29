@@ -10,9 +10,8 @@ namespace reasoner{
 
 class remote_moves_receiver{
         int socket_descriptor;
-        std::string buffer = {};
-        uint next_data_index = 0;
-        void fill_buffer(void);
+        std::string read_all(uint len);
+        uint read_length(void);
     public:
         remote_moves_receiver(void)=delete;
         remote_moves_receiver(const remote_moves_receiver&)=delete;

@@ -10,7 +10,7 @@ namespace reasoner{
 class own_moves_sender{
         int socket_descriptor;
         void send_text(const std::string& t);
-        void write_all(const char *str, uint len);
+        void write_all(const std::string& t);
     public:
         own_moves_sender(void)=delete;
         own_moves_sender(const own_moves_sender&)=delete;
