@@ -10,8 +10,8 @@ own_moves_sender::own_moves_sender(int socket_descriptor)
 namespace{
 std::string create_header(const std::string& t){
     std::stringstream header;
-    header<<std::setw(8)<<std::setfill(' ')<<t.size();
-    return header.str()+"\0\0\0\0\0\0\0\0";
+    header<<std::setw(5)<<std::setfill(' ')<<t.size();
+    return header.str();
 }
 
 std::string move_to_string(const reasoner::move& m){
@@ -21,6 +21,7 @@ std::string move_to_string(const reasoner::move& m){
             result<<' ';
         result<<m.mr[i].index<<' '<<m.mr[i].cell;
     }
+    result<<'\0';
     return result.str();
 }
 }

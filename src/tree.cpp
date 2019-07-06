@@ -5,16 +5,19 @@
 
 tree::tree(const reasoner::game_state& initial_state)
   : root_state(initial_state){
+    state_tracker tracker(cache, nodes_register, root_state);
+    tracker.go_to_completion();
+    root_state = tracker.get_state();
     nodes_register.emplace_back();
 }
 
 void tree::mitigate_pointers_invalidation_during_expansion(void){
     if(nodes_register.capacity()<nodes_register.size()+MAX_TRIES_FOR_NON_TERMINAL_STATE)
-        nodes_register.reserve(2*nodes_register.size()+MAX_TRIES_FOR_NON_TERMINAL_STATE);
+        nodes_register.reserve(2*nodes_register.capacity()+MAX_TRIES_FOR_NON_TERMINAL_STATE);
 }
 
 void tree::mitigate_pointers_invalidation_during_reparentng(std::vector<node>& new_nodes_register)const{
-    new_nodes_register.reserve(nodes_register.size());
+    new_nodes_register.reserve(nodes_register.capacity());
 }
 
 void tree::apply_simulation_result(const node_address& address, const simulation_result& result){

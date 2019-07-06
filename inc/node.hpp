@@ -27,9 +27,9 @@ class node{
     public:
         node(void)=default;
         node(const node&)=delete;
-        node(node&&)=default;
+        node(node&&)noexcept=default;
         node& operator=(const node&)=delete;
-        node& operator=(node&&)=default;
+        node& operator=(node&&)noexcept=default;
         ~node(void)=default;
         node clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
         const node& get_node_by_address(const node_address& address, state_tracker& tracker)const;

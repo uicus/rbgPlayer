@@ -54,7 +54,7 @@ std::string remote_moves_receiver::read_all(uint len){
 }
 
 uint remote_moves_receiver::read_length(void){
-    std::stringstream length_text(read_all(16));
+    std::stringstream length_text(read_all(5));
     uint result;
     length_text>>result;
     return result;
@@ -63,5 +63,6 @@ uint remote_moves_receiver::read_length(void){
 reasoner::move remote_moves_receiver::receive_move(void){
     uint length = read_length();
     auto sdu = read_all(length);
+    sdu.pop_back();
     return string_to_move(sdu);
 }

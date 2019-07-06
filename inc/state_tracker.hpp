@@ -12,7 +12,6 @@ class state_tracker{
         std::vector<node>& nodes_register;
         reasoner::game_state state;
         bool terminal = false;
-        void go_to_completion(void);
     public:
         state_tracker(void)=delete;
         state_tracker(const state_tracker&)=delete;
@@ -23,6 +22,7 @@ class state_tracker{
         state_tracker(reasoner::resettable_bitarray_stack& cache,
                       std::vector<node>& nodes_register,
                       const reasoner::game_state& state);
+        void go_to_completion(void);
         std::vector<edge> generate_children(void);
         void go_along_move(const reasoner::move& m);
         uint add_node_to_register(void);

@@ -50,11 +50,12 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
                                                const node_address& address,
                                                uint current_address_position,
                                                state_tracker& tracker){
+    apply_simulation_result(result);
     if(current_address_position < address.size()){
-        apply_simulation_result(result);
+        auto& n = 
         (*children)[address[current_address_position]]
-            .get_target(tracker)
-            .apply_simulation_result_for_address(result, address, current_address_position+1, tracker);
+            .get_target(tracker);
+        n.apply_simulation_result_for_address(result, address, current_address_position+1, tracker);
     }
 }
 
@@ -70,9 +71,14 @@ void node::choose_state_for_simulation(node_address& current_address, state_trac
             uint choice = children_with_highest_priority(tracker);
             ++number_of_attempts;
             (*children)[choice].create_target(tracker);
+            // std::cout<<"SZUKANIE:"<<std::endl;
+            // std::cout<<"Pozycja: "<<current_address.size()<<std::endl;
+            // std::cout<<"Pole: "<<choice<<" Rozmiar: "<<children->size()<<std::endl;
             current_address.push_back(choice);
             tracker.go_along_move((*children)[choice].get_move());
-            return (*children)[choice].get_target(tracker).choose_state_for_simulation(current_address, tracker);
+            (*children)[choice]
+                .get_target(tracker)
+                .choose_state_for_simulation(current_address, tracker);
         }
     }
 }

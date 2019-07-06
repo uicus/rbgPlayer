@@ -7,7 +7,7 @@ simulation_result::simulation_result(const reasoner::game_state& state){
 
 simulation_result& simulation_result::operator+=(const simulation_result& rhs){
     for (uint i = 1; i < reasoner::NUMBER_OF_PLAYERS; ++i)
-        scores[i] += rhs.scores[i];
+        scores[i-1] += rhs.scores[i-1];
     return *this;
 }
 
