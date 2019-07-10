@@ -2,6 +2,9 @@ SUFFIXES += .d
 NODEPS := clean distclean
 
 TARGET := rbgPlayer
+COMPILER_DIR := rbg2cpp
+COMPILER_BIN_DIR := bin
+COMPILER := rbg2cpp
 SRC_DIR := src
 INC_DIR := inc
 OBJ_DIR := obj
@@ -42,6 +45,9 @@ $(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp | $(DEP_DIR)
 $(TARGET): $(OBJECTS) | $(BIN_DIR)
 	$(C) $(CFLAGS) $(OBJECTS) -o $(BIN_DIR)/$@
 
+prepare:
+	cd $(COMPILER_DIR); make rbg2cpp; cd ..
+
 $(DEP_DIR):
 	mkdir -p $(DEP_DIR)
 
@@ -52,8 +58,11 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 clean:
+	cd $(COMPILER_DIR); make clean; cd ..
 	rm -rf $(OBJ_DIR)
 	rm -rf $(DEP_DIR)
+	rm -rf $(GEN_DIR)
 
 distclean: clean
+	cd $(COMPILER_DIR); make distclean; cd ..
 	rm -rf $(BIN_DIR)

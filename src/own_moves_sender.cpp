@@ -19,7 +19,7 @@ std::string move_to_string(const reasoner::move& m){
     for(uint i=0;i<m.mr.size();++i){
         if(i!=0)
             result<<' ';
-        result<<m.mr[i].index<<' '<<m.mr[i].cell;
+        result<<m.mr[i].cell-1<<' '<<m.mr[i].index;
     }
     result<<'\0';
     return result.str();
@@ -39,7 +39,7 @@ void own_moves_sender::write_all(const std::string& t){
 
 void own_moves_sender::send_text(const std::string& t){
     std::string pdu = create_header(t) + t;
-    write_all(t);
+    write_all(pdu);
 }
 
 

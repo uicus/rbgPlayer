@@ -33,8 +33,8 @@ reasoner::move string_to_move(const std::string& t){
     reasoner::move result;
     assert(split_text.size() % 2 == 0);
     for(uint i=0;i<split_text.size();i+=2){
-        uint index = std::stoi(split_text[i]);
-        uint cell = std::stoi(split_text[i+1]);
+        uint cell = std::stoi(split_text[i])+1;
+        uint index = std::stoi(split_text[i+1]);
         result.mr.emplace_back(index, cell);
     }
     return result;
