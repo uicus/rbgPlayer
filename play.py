@@ -83,11 +83,12 @@ def start_and_connect_player(player_address, player_port, player_name, number_of
     player_connection_wait.join()
     return return_value_queue.get(), player_process
 
-def forward_and_log(source_socket, target_socket, log_begin, log_end):
+def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
     while True:
         data = source_socket.recv(2048)
         if len(data) == 0:
-            return
+            print("Connection to",role,"lost! Exitting...")
+            quit()
         human_readable = data
         print(log_begin, human_readable, log_end)
         target_socket.send(data)
@@ -113,10 +114,12 @@ print("Received player name:",player_name)
 player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads)
 print("Player started!")
 
-server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--"))
-client_to_server = Thread(target = forward_and_log, args = (player_socket, server_socket, "Client says-->","<--"))
+server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))
+client_to_server = Thread(target = forward_and_log, args = (player_socket, server_socket, "Client says-->","<--","client"))
 client_to_server.daemon = True
+server_to_client.daemon = True
 client_to_server.start()
 server_to_client.start()
+client_to_server.join()
 server_to_client.join()
 player_process.terminate()

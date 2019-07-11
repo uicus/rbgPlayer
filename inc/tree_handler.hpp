@@ -20,13 +20,13 @@ namespace reasoner{
 class tree_handler{
         tree t;
         uint own_player_index;
-        uint game_turn = 0;
         std::vector<uint> moves_history = {};
         concurrent_queue<simulation_request>& requests_to_workers;
         concurrent_queue<client_response>& responses_to_server;
         void create_more_requests(void);
         bool address_still_usable(const simulation_response& response)const;
         node_address extract_usable_address(const simulation_response& response)const;
+        uint game_turn(void)const;
     public:
         tree_handler(void)=delete;
         tree_handler(const tree_handler&)=delete;

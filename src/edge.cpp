@@ -8,9 +8,11 @@ edge::edge(const reasoner::move& label)
 
 edge edge::clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
     edge result(label);
-    result.target = target;
-    if(target)
-        new_nodes_register.emplace_back(tracker.get_node(*target).clone_node(new_nodes_register, tracker));
+    if(target){
+        auto&& cloned_target = tracker.get_node(*target).clone_node(new_nodes_register, tracker);
+        new_nodes_register.emplace_back(std::move(cloned_target));
+        result.target = new_nodes_register.size()-1;
+    }
     return result;
 }
 

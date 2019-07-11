@@ -30,13 +30,13 @@ void tree_handler::create_more_requests(){
     uint created_requests_so_far = 0;
     while(requests_to_workers.size() < MIN_REQUESTS_IN_CHANNEL and created_requests_so_far < MAX_NEW_REQUESTS_PER_ITERATION){
         auto&& [address, state] = t.choose_state_for_simulation();
-        requests_to_workers.emplace_back(simulation_request{std::move(state), std::move(address), game_turn});
+        requests_to_workers.emplace_back(simulation_request{std::move(state), std::move(address), game_turn()});
         ++created_requests_so_far;
     }
 }
 
 bool tree_handler::address_still_usable(const simulation_response& response)const{
-    uint lag = game_turn - response.game_turn;
+    uint lag = game_turn() - response.game_turn;
     for(uint i=0;i<lag;++i)
         if(moves_history[response.game_turn+i] != response.address[i])
             return false;
@@ -44,12 +44,16 @@ bool tree_handler::address_still_usable(const simulation_response& response)cons
 }
 
 node_address tree_handler::extract_usable_address(const simulation_response& response)const{
-    uint lag = game_turn - response.game_turn;
+    uint lag = game_turn() - response.game_turn;
     return node_address(response.address.begin()+lag,response.address.end());
 }
 
+uint tree_handler::game_turn(void)const{
+    return moves_history.size();
+}
+
 void tree_handler::handle_simulation_response(const simulation_response& response){
-    if(response.game_turn == game_turn)
+    if(response.game_turn == game_turn())
         t.apply_simulation_result(response.address, response.result);
     else if(address_still_usable(response))
         t.apply_simulation_result(extract_usable_address(response), response.result);

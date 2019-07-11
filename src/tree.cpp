@@ -39,7 +39,8 @@ uint tree::reparent_along_move(const reasoner::move& m){
     state_tracker tracker(cache, nodes_register, root_state);
     const auto& new_root = nodes_register[root_index].get_node_by_address({move_index}, tracker);
     root_state = tracker.get_state();
-    new_nodes_register.emplace_back(new_root.clone_node(new_nodes_register, tracker));
+    auto&& cloned_root_node = new_root.clone_node(new_nodes_register, tracker);
+    new_nodes_register.emplace_back(std::move(cloned_root_node));
     root_index = new_nodes_register.size()-1;
     std::swap(new_nodes_register, nodes_register);
     return move_index;

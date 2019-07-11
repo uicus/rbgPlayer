@@ -15,9 +15,9 @@ class edge{
     public:
         edge(void)=delete;
         edge(const edge&)=delete;
-        edge(edge&&)noexcept=default;
+        edge(edge&&)=default;
         edge& operator=(const edge&)=delete;
-        edge& operator=(edge&&)noexcept=default;
+        edge& operator=(edge&&)=default;
         ~edge(void)=default;
         edge(const reasoner::move& label);
         edge clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;

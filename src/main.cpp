@@ -51,7 +51,8 @@ int main(int argc, char** argv){
     for(uint i=0;i<number_of_simulation_threads;++i)
         simulationw.emplace_back(run_local_simulations_worker, std::ref(tree_indications), std::ref(simulation_requests));
     transportw.join();
-    treew.join();
+    close(socket_descriptor);
+    treew.join(); // in fact just waiting to be terminated
     for(auto& el: simulationw)
         el.join();
     return 0;
