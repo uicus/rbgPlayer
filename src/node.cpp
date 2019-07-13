@@ -29,11 +29,12 @@ double node::exploration_value(uint parent_simulations)const{
     return EXPLORATION_CONSTANT*sqrt(log(double(parent_simulations))/double(number_of_attempts));
 }
 
-const node& node::get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker)const{
+const node& node::get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker){
     if(current_address_position >= address.size())
         return *this;
     else{
         tracker.go_along_move((*children)[address[current_address_position]].get_move());
+        (*children)[address[current_address_position]].create_target(tracker);
         return
             (*children)[address[current_address_position]]
                 .get_target(tracker)
@@ -86,7 +87,7 @@ uint node::children_with_highest_priority(const state_tracker& tracker)const{
     return std::distance(candidates.begin(), std::max_element(candidates.begin(), candidates.end()));
 }
 
-const node& node::get_node_by_address(const node_address& address, state_tracker& tracker)const{
+const node& node::get_node_by_address(const node_address& address, state_tracker& tracker){
     return get_node_by_address(address, 0, tracker);
 }
 

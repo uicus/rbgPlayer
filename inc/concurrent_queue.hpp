@@ -34,12 +34,6 @@ class concurrent_queue{
             new_data_notifier.notify_one();
         }
 
-        void clear(void){
-            std::lock_guard<std::mutex> lock(mutex);
-            collection.clear();
-            free_space_notifier.notify_one();
-        }
-
         size_t size(void){
             std::unique_lock<std::mutex> lock{mutex};
             return collection.size();
@@ -51,6 +45,7 @@ class concurrent_queue{
                 new_data_notifier.wait(lock);
             auto elem = std::move(collection.front());
             collection.pop();
+            lock.unlock();
             free_space_notifier.notify_one();
             return elem;
         }

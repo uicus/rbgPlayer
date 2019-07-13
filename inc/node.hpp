@@ -16,7 +16,7 @@ class node{
         uint number_of_attempts = 0;
         simulation_result sum_of_scores = {};
         double exploration_value(uint parent_simulations)const;
-        const node& get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker)const;
+        const node& get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker);
         void choose_state_for_simulation(node_address& current_address, state_tracker& tracker);
         uint children_with_highest_priority(const state_tracker& tracker)const;
         void apply_simulation_result(const simulation_result& result);
@@ -32,7 +32,7 @@ class node{
         node& operator=(node&&)=default;
         ~node(void)=default;
         node clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
-        const node& get_node_by_address(const node_address& address, state_tracker& tracker)const;
+        const node& get_node_by_address(const node_address& address, state_tracker& tracker);
         priority get_priority(uint parent_simulations, uint parent_player)const;
         double average_score(uint player)const;
         const reasoner::move& choose_best_move(const state_tracker& tracker);

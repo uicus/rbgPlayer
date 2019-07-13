@@ -88,6 +88,7 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         data = source_socket.recv(2048)
         if len(data) == 0:
             print("Connection to",role,"lost! Exitting...")
+            target_socket.shutdown(socket.SHUT_RDWR)
             quit()
         human_readable = data
         print(log_begin, human_readable, log_end)

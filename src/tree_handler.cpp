@@ -37,6 +37,8 @@ void tree_handler::create_more_requests(){
 
 bool tree_handler::address_still_usable(const simulation_response& response)const{
     uint lag = game_turn() - response.game_turn;
+    if(lag > response.address.size())
+        return false;
     for(uint i=0;i<lag;++i)
         if(moves_history[response.game_turn+i] != response.address[i])
             return false;
@@ -62,8 +64,8 @@ void tree_handler::handle_simulation_response(const simulation_response& respons
 
 void tree_handler::handle_move_request(void){
     const auto& chosen_move = t.choose_best_move();
-    moves_history.emplace_back(t.reparent_along_move(chosen_move));
     responses_to_server.emplace_back(client_response{chosen_move});
+    moves_history.emplace_back(t.reparent_along_move(chosen_move));
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
     create_more_requests();
 }
