@@ -6,6 +6,29 @@ import shutil
 from threading import Thread
 import queue
 
+class buffered_socket:
+    def __init__(self, s):
+        self.current_buffer = bytearray()
+        self.working_socket = s
+    def extend_buffer(self):
+        len_before = len(self.current_buffer)
+        chunk = self.working_socket.recv(2048)
+        self.current_buffer += chunk
+        return len_before, len_before+len(chunk)
+    def cut_on_index(self, index):
+        to_return = self.current_buffer[:index]
+        self.current_buffer = self.current_buffer[index:]
+        return to_return
+    def read_until(self, byte):
+        while True:
+            search_begin, search_end = self.extend_buffer()
+            if search_begin == search_end:
+                return self.cut_on_index(search_end)
+            else:
+                for i in range(search_begin, search_end):
+                    if self.current_buffer[i] == byte:
+                        return self.cut_on_index(i)
+
 gen_directory = "gen"
 game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
