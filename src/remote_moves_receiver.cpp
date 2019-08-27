@@ -1,7 +1,7 @@
 #include"remote_moves_receiver.hpp"
 #include"reasoner.hpp"
+#include"constants.hpp"
 #include<cassert>
-#include<string>
 #include<sstream>
 #include<vector>
 
@@ -41,28 +41,35 @@ reasoner::move string_to_move(const std::string& t){
 }
 }
 
-std::string remote_moves_receiver::read_all(uint len){
-    std::vector<char> buffer(len,'\0');
-    char* str = &buffer[0];
-    while (len>0){
-        int n = read(socket_descriptor, str, len);
-        assert(n>=1); // why not?
-        len -= n;
-        str += n;
-    }
-    return std::string(buffer.begin(), buffer.end());
+bool remote_moves_receiver::extend_buffer(void){
+    uint previous_size = buffer.size();
+    buffer.resize(previous_size+SOCKET_BUFFER_SIZE, '\0');
+    char* str = &buffer[previous_size];
+    int n = read(socket_descriptor, str, SOCKET_BUFFER_SIZE);
+    buffer.resize(previous_size+n); // shrink to actually read bytes
+    return n>=1;
 }
 
-uint remote_moves_receiver::read_length(void){
-    std::stringstream length_text(read_all(5));
-    uint result;
-    length_text>>result;
-    return result;
+std::string remote_moves_receiver::cut_buffer_at(uint index){
+    std::string new_buffer = buffer.substr(index+1);
+    buffer.resize(index);
+    buffer.swap(new_buffer);
+    return new_buffer;
+}
+
+std::string remote_moves_receiver::read_until(char byte){
+    uint last_checked_index = 0;
+    do{
+        for(;last_checked_index<buffer.size();++last_checked_index)
+            if(buffer[last_checked_index] == byte)
+                return cut_buffer_at(last_checked_index);
+    }while(extend_buffer());
+    std::string to_return;
+    buffer.swap(to_return);
+    return to_return;
 }
 
 reasoner::move remote_moves_receiver::receive_move(void){
-    uint length = read_length();
-    auto sdu = read_all(length);
-    sdu.pop_back();
+    auto sdu = read_until('\0');
     return string_to_move(sdu);
 }

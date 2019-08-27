@@ -8,12 +8,6 @@ own_moves_sender::own_moves_sender(int socket_descriptor)
   : socket_descriptor(socket_descriptor){}
 
 namespace{
-std::string create_header(const std::string& t){
-    std::stringstream header;
-    header<<std::setw(5)<<std::setfill(' ')<<t.size();
-    return header.str();
-}
-
 std::string move_to_string(const reasoner::move& m){
     std::stringstream result;
     for(uint i=0;i<m.mr.size();++i){
@@ -21,7 +15,6 @@ std::string move_to_string(const reasoner::move& m){
             result<<' ';
         result<<m.mr[i].cell-1<<' '<<m.mr[i].index;
     }
-    result<<'\0';
     return result.str();
 }
 }
@@ -38,7 +31,7 @@ void own_moves_sender::write_all(const std::string& t){
 }
 
 void own_moves_sender::send_text(const std::string& t){
-    std::string pdu = create_header(t) + t;
+    std::string pdu = t + '\0';
     write_all(pdu);
 }
 

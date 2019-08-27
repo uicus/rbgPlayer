@@ -1,8 +1,9 @@
 #ifndef REMOTE_MOVES_RECEIVER
 #define REMOTE_MOVES_RECEIVER
 
+#include<string>
+
 #include"types.hpp"
-#include"constants.hpp"
 
 namespace reasoner{
     class move;
@@ -10,8 +11,10 @@ namespace reasoner{
 
 class remote_moves_receiver{
         int socket_descriptor;
-        std::string read_all(uint len);
-        uint read_length(void);
+        std::string buffer = "";
+        bool extend_buffer(void);
+        std::string cut_buffer_at(uint index);
+        std::string read_until(char byte);
     public:
         remote_moves_receiver(void)=delete;
         remote_moves_receiver(const remote_moves_receiver&)=delete;
