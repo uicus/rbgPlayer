@@ -13,7 +13,7 @@ std::string move_to_string(const reasoner::move& m){
     for(uint i=0;i<m.mr.size();++i){
         if(i!=0)
             result<<' ';
-        result<<m.mr[i].cell-1<<' '<<m.mr[i].index;
+        result<<m.mr[i].cell<<' '<<m.mr[i].index;
     }
     return result.str();
 }

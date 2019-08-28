@@ -6,7 +6,7 @@ import shutil
 from threading import Thread
 import queue
 
-class buffered_socket:
+class BufferedSocket:
     def __init__(self, s):
         self.current_buffer = bytearray()
         self.working_socket = s
@@ -17,9 +17,12 @@ class buffered_socket:
         return len_before, len_before+len(chunk)
     def cut_on_index(self, index):
         to_return = self.current_buffer[:index]
-        self.current_buffer = self.current_buffer[index:]
+        self.current_buffer = self.current_buffer[index+1:]
         return to_return
     def read_until(self, byte):
+        for i, b in enumerate(self.current_buffer):
+            if b == byte:
+                return self.cut_on_index(i)
         while True:
             search_begin, search_end = self.extend_buffer()
             if search_begin == search_end:
@@ -28,6 +31,12 @@ class buffered_socket:
                 for i in range(search_begin, search_end):
                     if self.current_buffer[i] == byte:
                         return self.cut_on_index(i)
+    def receive_message(self):
+        return self.read_until(0)
+    def send_message(self, msg):
+        self.working_socket.send(msg+b'\0')
+    def shutdown(self):
+        self.working_socket.shutdown(socket.SHUT_RDWR)
 
 gen_directory = "gen"
 game_name = "game"
@@ -36,11 +45,6 @@ game_path = gen_directory+"/"+game_name+".rbg"
 if len(sys.argv) != 5:
     print("Usage:",sys.argv[0],"<player-port> <server-address> <server-port> <number-of-threads>")
     exit()
-
-def receive_message(source_socket):
-    header = source_socket.recv(5)
-    length = int(header)
-    return str(source_socket.recv(length), "utf-8")[:-1]
 
 def get_game_section(game, section):
     game_sections = game.split("#")
@@ -59,11 +63,11 @@ def get_player_name_from_players_item(item):
 
 def extract_player_name(game, player_number):
     players_section = get_game_section(game, "players")
-    player_item = get_comma_separated_item(players_section, player_number)
+    player_item = get_comma_separated_item(players_section, player_number-1)
     return get_player_name_from_players_item(player_item)
 
 def write_game_to_file(server_socket):
-    game = receive_message(server_socket)
+    game = str(server_socket.receive_message(), "utf-8")
     if os.path.exists(gen_directory) and os.path.isdir(gen_directory):
         shutil.rmtree(gen_directory)
     os.makedirs(gen_directory)
@@ -72,7 +76,7 @@ def write_game_to_file(server_socket):
     return game
 
 def receive_player_name(server_socket, game):
-    player_number = int(receive_message(server_socket))
+    player_number = int(str(server_socket.receive_message(), "utf-8"))
     return extract_player_name(game, player_number)
 
 def compile_player(num_of_threads):
@@ -104,18 +108,18 @@ def start_and_connect_player(player_address, player_port, player_name, number_of
     player_connection_wait.start()
     player_process = start_player(player_address, player_port, player_name, number_of_threads)
     player_connection_wait.join()
-    return return_value_queue.get(), player_process
+    return BufferedSocket(return_value_queue.get()), player_process
 
 def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
     while True:
-        data = source_socket.recv(2048)
+        data = source_socket.receive_message()
         if len(data) == 0:
             print("Connection to",role,"lost! Exitting...")
-            target_socket.shutdown(socket.SHUT_RDWR)
+            target_socket.shutdown()
             quit()
         human_readable = data
         print(log_begin, human_readable, log_end)
-        target_socket.send(data)
+        target_socket.send_message(data)
 
 player_address = "127.0.0.1"
 player_port = int(sys.argv[1])
@@ -123,7 +127,7 @@ server_address = sys.argv[2]
 server_port = int(sys.argv[3])
 number_of_threads = int(sys.argv[4])
 
-server_socket = connect_to_server(server_address, server_port)
+server_socket = BufferedSocket(connect_to_server(server_address, server_port))
 print("Successfully connected to server!")
 
 game = write_game_to_file(server_socket)
