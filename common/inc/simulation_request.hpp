@@ -3,6 +3,7 @@
 
 #include"reasoner.hpp"
 #include"types.hpp"
+#include"node_address.hpp"
 
 struct simulation_request{
     reasoner::game_state state;

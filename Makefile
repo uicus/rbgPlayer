@@ -1,5 +1,6 @@
 SUFFIXES += .d
 NODEPS := clean distclean
+PERCENT := %
 
 TARGET := rbgPlayer
 COMPILER_DIR := rbg2cpp
@@ -11,21 +12,36 @@ OBJ_DIR := obj
 BIN_DIR := bin
 DEP_DIR := dep
 GEN_DIR := gen
+COMMON := common
+ORTHODOX_MCTS := orthodox_mcts
+ORTHODOX_COMMON := orthodox_common
 REASONER := reasoner
-MAIN_FILE := $(SRC_DIR)/main.cpp
 
 C := g++
-INCLUDE := -I$(INC_DIR) -I$(GEN_DIR)
-COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17 -pthread
-CFLAGS := $(COMMON_CFLAGS) -s $(INCLUDE)
+COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17 -pthread -s
 
-OBJECTS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
-OBJECTS := $(OBJ_DIR)/$(REASONER).o $(OBJECTS)
-DEPFILES := $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(wildcard $(SRC_DIR)/*.cpp))
+define LIST_RULE
+$(OBJ_DIR)/$(1)/%.o: $(3)/$(SRC_DIR)/%.cpp $(DEP_DIR)/$(1)/%.d | $(OBJ_DIR)/$(1)
+	$(C) $(2) -c $$< -o $$@
+$(DEP_DIR)/$(1)/%.d: $(3)/$(SRC_DIR)/%.cpp | $(DEP_DIR)/$(1)
+	$(C) $(2) -MM -MT '$$(patsubst $(3)/$(SRC_DIR)/%.cpp,$(OBJ_DIR)/$(1)/%.o,$$<) $$@' $$< -MF $$@
+endef
+
+ORTHODOX_MCTS_DIRS := $(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON)
+ORTHODOX_MCTS_INCLUDE := $(foreach dir,$(ORTHODOX_MCTS_DIRS),-I$(wildcard $(dir)/$(INC_DIR))) -I$(GEN_DIR)
+ORTHODOX_MCTS_CFLAGS := $(COMMON_CFLAGS) $(ORTHODOX_MCTS_INCLUDE)
+ORTHODOX_MCTS_OBJECTS := $(foreach dir,$(ORTHODOX_MCTS_DIRS),$(patsubst $(dir)/$(SRC_DIR)/%.cpp, $(OBJ_DIR)/$(ORTHODOX_MCTS)/%.o, $(wildcard $(dir)/$(SRC_DIR)/*.cpp)))
+ORTHODOX_MCTS_OBJECTS := $(ORTHODOX_MCTS_OBJECTS) $(OBJ_DIR)/$(REASONER).o
+$(foreach dir,$(ORTHODOX_MCTS_DIRS),$(eval $(call LIST_RULE,$(ORTHODOX_MCTS),$(ORTHODOX_MCTS_CFLAGS),$(dir))))
+DEPFILES := $(DEPFILES) $(foreach dir,$(ORTHODOX_MCTS_DIRS),$(patsubst $(dir)/$(SRC_DIR)/%.cpp, $(DEP_DIR)/$(ORTHODOX_MCTS)/%.d, $(wildcard $(dir)/$(SRC_DIR)/*.cpp)))
+$(OBJ_DIR)/$(ORTHODOX_MCTS): | $(OBJ_DIR)
+	mkdir -p $(OBJ_DIR)/$(ORTHODOX_MCTS)
+$(DEP_DIR)/$(ORTHODOX_MCTS): | $(DEP_DIR)
+	mkdir -p $(DEP_DIR)/$(ORTHODOX_MCTS)
+orthodoxMcts: $(ORTHODOX_MCTS_OBJECTS) | $(BIN_DIR)
+	$(C) $(ORTHODOX_MCTS_CFLAGS) $(ORTHODOX_MCTS_OBJECTS) -o $(BIN_DIR)/$@
+
 DEPFILES := $(DEP_DIR)/$(REASONER).d $(DEPFILES)
-
-all: $(TARGET)
-
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
 endif
@@ -33,20 +49,8 @@ endif
 $(OBJ_DIR)/%.o: $(GEN_DIR)/%.cpp $(DEP_DIR)/%.d | $(OBJ_DIR)
 	$(C) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEP_DIR)/%.d | $(OBJ_DIR)
-	$(C) $(CFLAGS) -c $< -o $@
-
 $(DEP_DIR)/%.d: $(GEN_DIR)/%.cpp | $(DEP_DIR)
 	$(C) $(CFLAGS) -MM -MT '$(patsubst $(GEN_DIR)/%.cpp,$(OBJ_DIR)/%.o,$<) $@' $< -MF $@
-
-$(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp | $(DEP_DIR)
-	$(C) $(CFLAGS) -MM -MT '$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$<) $@' $< -MF $@
-
-$(TARGET): $(OBJECTS) | $(BIN_DIR)
-	$(C) $(CFLAGS) $(OBJECTS) -o $(BIN_DIR)/$@
-
-prepare:
-	cd $(COMPILER_DIR); make rbg2cpp; cd ..
 
 $(DEP_DIR):
 	mkdir -p $(DEP_DIR)

@@ -3,6 +3,7 @@
 
 #include"tree.hpp"
 #include"types.hpp"
+#include"node_address.hpp"
 
 #include<string>
 

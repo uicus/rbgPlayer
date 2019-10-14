@@ -83,7 +83,7 @@ def compile_player(num_of_threads):
     subprocess.run(["rbg2cpp/bin/rbg2cpp", "-o", "reasoner", game_path]) # assume description is correct
     shutil.move("reasoner.cpp", gen_directory+"/reasoner.cpp")
     shutil.move("reasoner.hpp", gen_directory+"/reasoner.hpp")
-    subprocess.run(["make", "-j"+str(num_of_threads)]) # again, assume everything is ok
+    subprocess.run(["make", "-j"+str(num_of_threads), "orthodoxMcts"]) # again, assume everything is ok
 
 def connect_to_server(server_address, server_port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -100,7 +100,7 @@ def wait_for_player_connection(player_address, player_port, return_value_queue):
 
 def start_player(player_address, player_port, player_name, number_of_threads):
     workers = max(number_of_threads-1, 1)
-    return subprocess.Popen(["bin/rbgPlayer", str(player_address), str(player_port), str(player_name), str(workers)])
+    return subprocess.Popen(["bin/orthodoxMcts", str(player_address), str(player_port), str(player_name), str(workers)])
 
 def start_and_connect_player(player_address, player_port, player_name, number_of_threads):
     return_value_queue = queue.Queue()

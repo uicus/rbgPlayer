@@ -5,6 +5,7 @@
 #include<optional>
 
 #include"types.hpp"
+#include"node_address.hpp"
 #include"simulation_result.hpp"
 #include"edge.hpp"
 
