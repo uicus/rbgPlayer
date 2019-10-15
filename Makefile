@@ -1,6 +1,5 @@
 SUFFIXES += .d
-NODEPS := clean distclean
-PERCENT := %
+NODEPS := clean distclean prepare
 
 TARGET := rbgPlayer
 COMPILER_DIR := rbg2cpp
@@ -20,37 +19,34 @@ REASONER := reasoner
 C := g++
 COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17 -pthread -s
 
-define LIST_RULE
+define OBJECT_RULES
 $(OBJ_DIR)/$(1)/%.o: $(3)/$(SRC_DIR)/%.cpp $(DEP_DIR)/$(1)/%.d | $(OBJ_DIR)/$(1)
 	$(C) $(2) -c $$< -o $$@
 $(DEP_DIR)/$(1)/%.d: $(3)/$(SRC_DIR)/%.cpp | $(DEP_DIR)/$(1)
 	$(C) $(2) -MM -MT '$$(patsubst $(3)/$(SRC_DIR)/%.cpp,$(OBJ_DIR)/$(1)/%.o,$$<) $$@' $$< -MF $$@
 endef
 
-ORTHODOX_MCTS_DIRS := $(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON)
-ORTHODOX_MCTS_INCLUDE := $(foreach dir,$(ORTHODOX_MCTS_DIRS),-I$(wildcard $(dir)/$(INC_DIR))) -I$(GEN_DIR)
-ORTHODOX_MCTS_CFLAGS := $(COMMON_CFLAGS) $(ORTHODOX_MCTS_INCLUDE)
-ORTHODOX_MCTS_OBJECTS := $(foreach dir,$(ORTHODOX_MCTS_DIRS),$(patsubst $(dir)/$(SRC_DIR)/%.cpp, $(OBJ_DIR)/$(ORTHODOX_MCTS)/%.o, $(wildcard $(dir)/$(SRC_DIR)/*.cpp)))
-ORTHODOX_MCTS_OBJECTS := $(ORTHODOX_MCTS_OBJECTS) $(OBJ_DIR)/$(REASONER).o
-$(foreach dir,$(ORTHODOX_MCTS_DIRS),$(eval $(call LIST_RULE,$(ORTHODOX_MCTS),$(ORTHODOX_MCTS_CFLAGS),$(dir))))
-DEPFILES := $(DEPFILES) $(foreach dir,$(ORTHODOX_MCTS_DIRS),$(patsubst $(dir)/$(SRC_DIR)/%.cpp, $(DEP_DIR)/$(ORTHODOX_MCTS)/%.d, $(wildcard $(dir)/$(SRC_DIR)/*.cpp)))
-$(OBJ_DIR)/$(ORTHODOX_MCTS): | $(OBJ_DIR)
-	mkdir -p $(OBJ_DIR)/$(ORTHODOX_MCTS)
-$(DEP_DIR)/$(ORTHODOX_MCTS): | $(DEP_DIR)
-	mkdir -p $(DEP_DIR)/$(ORTHODOX_MCTS)
-orthodoxMcts: $(ORTHODOX_MCTS_OBJECTS) | $(BIN_DIR)
-	$(C) $(ORTHODOX_MCTS_CFLAGS) $(ORTHODOX_MCTS_OBJECTS) -o $(BIN_DIR)/$@
+define PLAYER_KIND_RULES
+$(1)_DIRS := $(3)
+$(1)_INCLUDE := $$(foreach dir,$$($(1)_DIRS),-I$$(wildcard $$(dir)/$(INC_DIR)))
+$(1)_CFLAGS := $(COMMON_CFLAGS) $$($(1)_INCLUDE)
+$(1)_OBJECTS := $$(foreach dir,$$($(1)_DIRS),$$(patsubst $$(dir)/$(SRC_DIR)/%.cpp, $(OBJ_DIR)/$(2)/%.o, $$(wildcard $$(dir)/$(SRC_DIR)/*.cpp)))
+$$(foreach dir,$$($(1)_DIRS),$$(eval $$(call OBJECT_RULES,$(2),$$($(1)_CFLAGS),$$(dir))))
+DEPFILES := $(DEPFILES) $$(foreach dir,$$($(1)_DIRS),$$(patsubst $$(dir)/$(SRC_DIR)/%.cpp, $(DEP_DIR)/$(2)/%.d, $$(wildcard $$(dir)/$(SRC_DIR)/*.cpp)))
+$(OBJ_DIR)/$(2): | $(OBJ_DIR)
+	mkdir -p $(OBJ_DIR)/$(2)
+$(DEP_DIR)/$(2): | $(DEP_DIR)
+	mkdir -p $(DEP_DIR)/$(2)
+$(2): $$($(1)_OBJECTS) | $(BIN_DIR)
+	echo $$($(1)_INCLUDE)
+	$(C) $$($(1)_CFLAGS) $$($(1)_OBJECTS) -o $(BIN_DIR)/$$@
+endef
 
-DEPFILES := $(DEP_DIR)/$(REASONER).d $(DEPFILES)
+$(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
+
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
 endif
-
-$(OBJ_DIR)/%.o: $(GEN_DIR)/%.cpp $(DEP_DIR)/%.d | $(OBJ_DIR)
-	$(C) $(CFLAGS) -c $< -o $@
-
-$(DEP_DIR)/%.d: $(GEN_DIR)/%.cpp | $(DEP_DIR)
-	$(C) $(CFLAGS) -MM -MT '$(patsubst $(GEN_DIR)/%.cpp,$(OBJ_DIR)/%.o,$<) $@' $< -MF $@
 
 $(DEP_DIR):
 	mkdir -p $(DEP_DIR)
@@ -60,6 +56,9 @@ $(OBJ_DIR):
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
+
+prepare:
+	cd $(COMPILER_DIR); make $(COMPILER); cd ..
 
 clean:
 	cd $(COMPILER_DIR); make clean; cd ..

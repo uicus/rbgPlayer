@@ -39,6 +39,8 @@ class BufferedSocket:
         self.working_socket.shutdown(socket.SHUT_RDWR)
 
 gen_directory = "gen"
+gen_inc_directory = gen_directory+"/inc"
+gen_src_directory = gen_directory+"/src"
 game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
 
@@ -71,6 +73,8 @@ def write_game_to_file(server_socket):
     if os.path.exists(gen_directory) and os.path.isdir(gen_directory):
         shutil.rmtree(gen_directory)
     os.makedirs(gen_directory)
+    os.makedirs(gen_inc_directory)
+    os.makedirs(gen_src_directory)
     with open(game_path, 'w') as out:
         out.write(game + "\n")
     return game
@@ -81,8 +85,8 @@ def receive_player_name(server_socket, game):
 
 def compile_player(num_of_threads):
     subprocess.run(["rbg2cpp/bin/rbg2cpp", "-o", "reasoner", game_path]) # assume description is correct
-    shutil.move("reasoner.cpp", gen_directory+"/reasoner.cpp")
-    shutil.move("reasoner.hpp", gen_directory+"/reasoner.hpp")
+    shutil.move("reasoner.cpp", gen_src_directory+"/reasoner.cpp")
+    shutil.move("reasoner.hpp", gen_inc_directory+"/reasoner.hpp")
     subprocess.run(["make", "-j"+str(num_of_threads), "orthodoxMcts"]) # again, assume everything is ok
 
 def connect_to_server(server_address, server_port):
