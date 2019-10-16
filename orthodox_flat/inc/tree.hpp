@@ -2,15 +2,22 @@
 #define TREE
 
 #include<vector>
+#include<random>
 
 #include"reasoner.hpp"
 #include"types.hpp"
 #include"node_address.hpp"
+#include"node.hpp"
 
 class simulation_result;
 
 class tree{
         reasoner::game_state root_state;
+        std::mt19937 random_numbers_generator;
+        std::vector<node> children = {};
+        reasoner::resettable_bitarray_stack cache = {};
+        void go_to_completion(reasoner::game_state& state);
+        void create_children(void);
     public:
         tree(void)=delete;
         tree(const tree&)=delete;
