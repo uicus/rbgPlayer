@@ -18,6 +18,8 @@ class tree{
         reasoner::resettable_bitarray_stack cache = {};
         void go_to_completion(reasoner::game_state& state);
         void create_children(void);
+        uint get_current_player(void)const;
+        uint get_node_index_by_move(const reasoner::move& m)const;
     public:
         tree(void)=delete;
         tree(const tree&)=delete;

@@ -39,7 +39,7 @@ class node{
         const reasoner::move& choose_best_move(const state_tracker& tracker);
         node_address choose_state_for_simulation(state_tracker& tracker);
         void apply_simulation_result_for_address(const simulation_result& result, const node_address& address, state_tracker& tracker);
-        uint get_node_index_by_move(const reasoner::move& m);
+        uint get_node_index_by_move(const reasoner::move& m)const;
         bool is_terminal(void)const;
 };
 

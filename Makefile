@@ -39,7 +39,6 @@ $(OBJ_DIR)/$(2): | $(OBJ_DIR)
 $(DEP_DIR)/$(2): | $(DEP_DIR)
 	mkdir -p $(DEP_DIR)/$(2)
 $(2): $$($(1)_OBJECTS) | $(BIN_DIR)
-	echo $$($(1)_INCLUDE)
 	$(C) $$($(1)_CFLAGS) $$($(1)_OBJECTS) -o $(BIN_DIR)/$$@
 endef
 
