@@ -43,9 +43,10 @@ gen_inc_directory = gen_directory+"/inc"
 gen_src_directory = gen_directory+"/src"
 game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
+semisplit_players = set(["semisplitFlat"])
 
-if len(sys.argv) != 5:
-    print("Usage:",sys.argv[0],"<player-port> <server-address> <server-port> <number-of-threads>")
+if len(sys.argv) != 6:
+    print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads>")
     exit()
 
 def get_game_section(game, section):
@@ -83,11 +84,14 @@ def receive_player_name(server_socket, game):
     player_number = int(str(server_socket.receive_message(), "utf-8"))
     return extract_player_name(game, player_number)
 
-def compile_player(num_of_threads):
-    subprocess.run(["rbg2cpp/bin/rbg2cpp", "-o", "reasoner", game_path]) # assume description is correct
+def compile_player(num_of_threads, player_kind):
+    if player_kind in semisplit_players:
+        subprocess.run(["rbg2cpp/bin/rbg2cpp", "-fsemi-split", "-o", "reasoner", game_path]) # assume description is correct
+    else:
+        subprocess.run(["rbg2cpp/bin/rbg2cpp", "-o", "reasoner", game_path]) # assume description is correct
     shutil.move("reasoner.cpp", gen_src_directory+"/reasoner.cpp")
     shutil.move("reasoner.hpp", gen_inc_directory+"/reasoner.hpp")
-    subprocess.run(["make", "-j"+str(num_of_threads), "orthodoxMcts"]) # again, assume everything is ok
+    subprocess.run(["make", "-j"+str(num_of_threads), player_kind]) # again, assume everything is ok
 
 def connect_to_server(server_address, server_port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -126,10 +130,11 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         target_socket.send_message(data)
 
 player_address = "127.0.0.1"
-player_port = int(sys.argv[1])
-server_address = sys.argv[2]
-server_port = int(sys.argv[3])
-number_of_threads = int(sys.argv[4])
+player_kind = sys.argv[1]
+player_port = int(sys.argv[2])
+server_address = sys.argv[3]
+server_port = int(sys.argv[4])
+number_of_threads = int(sys.argv[5])
 
 server_socket = BufferedSocket(connect_to_server(server_address, server_port))
 print("Successfully connected to server!")
@@ -137,7 +142,7 @@ print("Successfully connected to server!")
 game = write_game_to_file(server_socket)
 print("Game rules written to:",game_path)
 
-compile_player(number_of_threads)
+compile_player(number_of_threads, player_kind)
 print("Player compiled!")
 
 player_name = receive_player_name(server_socket, game)

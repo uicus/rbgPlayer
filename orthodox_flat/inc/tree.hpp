@@ -33,6 +33,7 @@ class tree{
         uint reparent_along_move(const reasoner::move& m);
         const reasoner::move& choose_best_move(void);
         game_status_indication get_status(uint own_index)const;
+        bool should_simulate(uint own_index)const;
 };
 
 #endif

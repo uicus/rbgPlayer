@@ -59,3 +59,7 @@ game_status_indication tree::get_status(uint own_index)const{
     else
         return opponent_turn;
 }
+
+bool tree::should_simulate(uint)const{
+    return true;
+}
