@@ -106,15 +106,15 @@ def wait_for_player_connection(player_address, player_port, return_value_queue):
     player_socket, _ = accept_socket.accept()
     return_value_queue.put(player_socket)
 
-def start_player(player_address, player_port, player_name, number_of_threads):
+def start_player(player_address, player_port, player_name, number_of_threads, player_kind):
     workers = max(number_of_threads-1, 1)
-    return subprocess.Popen(["bin/orthodoxMcts", str(player_address), str(player_port), str(player_name), str(workers)])
+    return subprocess.Popen(["bin/"+player_kind, str(player_address), str(player_port), str(player_name), str(workers)])
 
-def start_and_connect_player(player_address, player_port, player_name, number_of_threads):
+def start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind):
     return_value_queue = queue.Queue()
     player_connection_wait = Thread(target = wait_for_player_connection, args = (player_address, player_port, return_value_queue))
     player_connection_wait.start()
-    player_process = start_player(player_address, player_port, player_name, number_of_threads)
+    player_process = start_player(player_address, player_port, player_name, number_of_threads, player_kind)
     player_connection_wait.join()
     return BufferedSocket(return_value_queue.get()), player_process
 
@@ -148,7 +148,7 @@ print("Player compiled!")
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
-player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads)
+player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind)
 print("Player started!")
 
 server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))
