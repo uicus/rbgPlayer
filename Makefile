@@ -13,8 +13,9 @@ DEP_DIR := dep
 GEN_DIR := gen
 COMMON := common
 ORTHODOX_MCTS := orthodox_mcts
-ORTHODOX_FLAT := orthodox_flat
 ORTHODOX_COMMON := orthodox_common
+FLAT_COMMON := flat_common
+SEMISPLIT_COMMON := semisplit_common
 REASONER := reasoner
 
 C := g++
@@ -43,7 +44,8 @@ $(2): $$($(1)_OBJECTS) | $(BIN_DIR)
 endef
 
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
-$(eval $(call PLAYER_KIND_RULES,ORTHODOX_FLAT,orthodoxFlat,$(ORTHODOX_FLAT) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
+$(eval $(call PLAYER_KIND_RULES,ORTHODOX_FLAT,orthodoxFlat,$(FLAT_COMMON) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
+$(eval $(call PLAYER_KIND_RULES,SEMISPLIT_FLAT,semisplitFlat,$(FLAT_COMMON) $(SEMISPLIT_COMMON) $(COMMON) $(GEN_DIR)))
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
