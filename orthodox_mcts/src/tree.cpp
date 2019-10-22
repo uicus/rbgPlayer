@@ -34,11 +34,12 @@ std::tuple<node_address, reasoner::game_state> tree::choose_state_for_simulation
 
 uint tree::reparent_along_move(const reasoner::move& m){
     std::vector<node> new_nodes_register;
-    mitigate_pointers_invalidation_during_reparentng(new_nodes_register);
-    const auto move_index = nodes_register[root_index].get_node_index_by_move(m);
     state_tracker tracker(cache, nodes_register, root_state);
+    mitigate_pointers_invalidation_during_expansion();
+    const auto move_index = nodes_register[root_index].get_node_index_by_move(m, tracker);
     const auto& new_root = nodes_register[root_index].get_node_by_address({move_index}, tracker);
     root_state = tracker.get_state();
+    mitigate_pointers_invalidation_during_reparentng(new_nodes_register);
     auto&& cloned_root_node = new_root.clone_node(new_nodes_register, tracker);
     new_nodes_register.emplace_back(std::move(cloned_root_node));
     root_index = new_nodes_register.size()-1;
@@ -60,6 +61,7 @@ game_status_indication tree::get_status(uint own_index)const{
         return opponent_turn;
 }
 
-bool tree::should_simulate(uint)const{
-    return true;
+bool tree::should_simulate(uint own_index)const{
+    return get_status(own_index) == own_turn;
+    // return true;
 }

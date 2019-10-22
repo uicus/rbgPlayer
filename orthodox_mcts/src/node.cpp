@@ -118,8 +118,9 @@ void node::apply_simulation_result_for_address(const simulation_result& result, 
     apply_simulation_result_for_address(result, address, 0, tracker);
 }
 
-uint node::get_node_index_by_move(const reasoner::move& m)const{
-    assert(children);
+uint node::get_node_index_by_move(const reasoner::move& m, state_tracker& tracker){
+    if(not children)
+        children = tracker.generate_children();
     const auto result = std::find_if(children->begin(), children->end(), [&m](const auto& el){return el.matches(m);});
     assert(result != children->end()); // told to move along nonexistant edge -- probably server bug
     return std::distance(children->begin(), result);
