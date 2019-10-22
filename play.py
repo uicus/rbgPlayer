@@ -45,8 +45,8 @@ game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
 semisplit_players = set(["semisplitFlat"])
 
-if len(sys.argv) != 6:
-    print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads>")
+if len(sys.argv) != 7:
+    print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads> <miliseconds-per-move>")
     exit()
 
 def get_game_section(game, section):
@@ -106,15 +106,15 @@ def wait_for_player_connection(player_address, player_port, return_value_queue):
     player_socket, _ = accept_socket.accept()
     return_value_queue.put(player_socket)
 
-def start_player(player_address, player_port, player_name, number_of_threads, player_kind):
+def start_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move):
     workers = max(number_of_threads-1, 1)
-    return subprocess.Popen(["bin/"+player_kind, str(player_address), str(player_port), str(player_name), str(workers)])
+    return subprocess.Popen(["bin/"+player_kind, str(player_address), str(player_port), str(player_name), str(workers), str(miliseconds_per_move)])
 
-def start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind):
+def start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move):
     return_value_queue = queue.Queue()
     player_connection_wait = Thread(target = wait_for_player_connection, args = (player_address, player_port, return_value_queue))
     player_connection_wait.start()
-    player_process = start_player(player_address, player_port, player_name, number_of_threads, player_kind)
+    player_process = start_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move)
     player_connection_wait.join()
     return BufferedSocket(return_value_queue.get()), player_process
 
@@ -135,6 +135,7 @@ player_port = int(sys.argv[2])
 server_address = sys.argv[3]
 server_port = int(sys.argv[4])
 number_of_threads = int(sys.argv[5])
+miliseconds_per_move = int(sys.argv[6])
 
 server_socket = BufferedSocket(connect_to_server(server_address, server_port))
 print("Successfully connected to server!")
@@ -148,7 +149,7 @@ print("Player compiled!")
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
-player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind)
+player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move)
 print("Player started!")
 
 server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))

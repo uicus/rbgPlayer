@@ -32,11 +32,12 @@ int connect_to_play(const std::string& address, uint port){
 }
 
 int main(int argc, char** argv){
-    assert(argc == 5); // otherwise bug in play.py
+    assert(argc == 6); // otherwise bug in play.py
     std::string play_address = argv[1];
     uint play_port = std::stoi(argv[2]);
     std::string player_name = argv[3];
     uint number_of_simulation_threads = std::stoi(argv[4]);
+    uint miliseconds_per_move = std::stoi(argv[5]);
     concurrent_queue<client_response> client_responses;
     concurrent_queue<tree_indication> tree_indications;
     concurrent_queue<simulation_request> simulation_requests;
@@ -45,7 +46,7 @@ int main(int argc, char** argv){
         return -1;
     remote_moves_receiver rmr(socket_descriptor);
     own_moves_sender oms(socket_descriptor);
-    std::thread transportw(run_transport_worker, std::ref(rmr), std::ref(oms), std::ref(tree_indications), std::ref(client_responses));
+    std::thread transportw(run_transport_worker, miliseconds_per_move, std::ref(rmr), std::ref(oms), std::ref(tree_indications), std::ref(client_responses));
     std::thread treew(run_tree_worker, player_name, std::ref(simulation_requests), std::ref(client_responses), std::ref(tree_indications));
     std::vector<std::thread> simulationw;
     for(uint i=0;i<number_of_simulation_threads;++i)

@@ -40,14 +40,15 @@ void forward_move_from_server_to_player(remote_moves_receiver& rmr,
     tree_indications.emplace_back(tree_indication{m});
 }
 
-void handle_turn(remote_moves_receiver& rmr,
+void handle_turn(uint miliseconds_per_move,
+                 remote_moves_receiver& rmr,
                  own_moves_sender& oms,
                  game_status_indication status,
                  concurrent_queue<tree_indication>& tree_indications,
                  concurrent_queue<client_response>& responses_from_tree){
     switch(status){
         case own_turn:
-            std::this_thread::sleep_for(std::chrono::milliseconds(MILISECONDS_PER_MOVE-BUFFER_TIME));
+            std::this_thread::sleep_for(std::chrono::milliseconds(miliseconds_per_move-BUFFER_TIME));
             tree_indications.emplace_back(tree_indication{move_request{}});
             forward_move_from_player_to_server(oms, responses_from_tree);
             break;
@@ -61,13 +62,15 @@ void handle_turn(remote_moves_receiver& rmr,
 }
 }
 
-void run_transport_worker(remote_moves_receiver& rmr,
+void run_transport_worker(uint miliseconds_per_move,
+                          remote_moves_receiver& rmr,
                           own_moves_sender& oms,
                           concurrent_queue<tree_indication>& tree_indications,
                           concurrent_queue<client_response>& responses_from_tree){
     game_status_indication current_status = get_initial_game_status(tree_indications, responses_from_tree);
     while(current_status != end_game){
-        handle_turn(rmr,
+        handle_turn(miliseconds_per_move,
+                    rmr,
                     oms,
                     current_status,
                     tree_indications,
