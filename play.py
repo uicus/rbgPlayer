@@ -5,6 +5,7 @@ import subprocess
 import shutil
 from threading import Thread
 import queue
+import time
 
 class BufferedSocket:
     def __init__(self, s):
@@ -145,6 +146,7 @@ print("Game rules written to:",game_path)
 
 compile_player(number_of_threads, player_kind)
 print("Player compiled!")
+time.sleep(1.) # to give other players time to end compilation
 
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
