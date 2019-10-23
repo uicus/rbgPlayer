@@ -5,6 +5,7 @@
 #include"simulation_response.hpp"
 #include"client_response.hpp"
 #include"constants.hpp"
+#include<iostream>
 
 namespace{
 uint get_player_index(const std::string& name){
@@ -17,11 +18,13 @@ uint get_player_index(const std::string& name){
 
 tree_handler::tree_handler(const reasoner::game_state& initial_state,
                            const std::string& own_player_name,
+                           uint simulations_limit,
                            concurrent_queue<simulation_request>& requests_to_workers,
                            concurrent_queue<client_response>& responses_to_server)
   : t(initial_state)
   , own_player_index(get_player_index(own_player_name))
   , history()
+  , simulations_limit(simulations_limit)
   , requests_to_workers(requests_to_workers)
   , responses_to_server(responses_to_server){
     create_more_requests();
@@ -38,23 +41,32 @@ void tree_handler::create_more_requests(){
     }
 }
 
+void tree_handler::handle_simulations_counter(void){
+    if(++simulations_count >= simulations_limit)
+        handle_move_request();
+}
+
 void tree_handler::handle_simulation_response(const simulation_response& response){
-    if(history.address_fully_usable(response))
+    if(history.address_fully_usable(response)){
         t.apply_simulation_result(response.address, response.result);
-    else if(history.address_partially_usable(response))
+        handle_simulations_counter();
+    }
+    else if(history.address_partially_usable(response)){
         t.apply_simulation_result(history.extract_usable_address(response), response.result);
+        handle_simulations_counter();
+    }
     create_more_requests();
 }
 
 void tree_handler::handle_move_request(void){
+    std::cout << "[PLAYER] Performing move on the basis of " << simulations_count << " simulations." << std::endl;
     const auto& chosen_move = t.choose_best_move();
     responses_to_server.emplace_back(client_response{chosen_move});
-    history.notify_about_move(t.reparent_along_move(chosen_move));
-    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
-    create_more_requests();
+    handle_move_indication(chosen_move);
 }
 
 void tree_handler::handle_move_indication(const reasoner::move& m){
+    simulations_count = 0;
     history.notify_about_move(t.reparent_along_move(m));
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
     create_more_requests();

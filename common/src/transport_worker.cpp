@@ -40,6 +40,22 @@ void forward_move_from_server_to_player(remote_moves_receiver& rmr,
     tree_indications.emplace_back(tree_indication{m});
 }
 
+bool is_move_already_available(concurrent_queue<client_response>& responses_from_tree){
+    return responses_from_tree.size() > 0;
+}
+
+void wait_for_move(uint milisecond_to_wait,
+                   concurrent_queue<tree_indication>& tree_indications,
+                   concurrent_queue<client_response>& responses_from_tree){
+    const uint max_iterations = milisecond_to_wait/MILISECONDS_TIME_GRANULATION;
+    for(uint i=0;i<max_iterations;++i){
+        std::this_thread::sleep_for(std::chrono::milliseconds(MILISECONDS_TIME_GRANULATION));
+        if(is_move_already_available(responses_from_tree))
+            return;
+    }
+    tree_indications.emplace_back(tree_indication{move_request{}});
+}
+
 void handle_turn(uint miliseconds_per_move,
                  remote_moves_receiver& rmr,
                  own_moves_sender& oms,
@@ -48,8 +64,7 @@ void handle_turn(uint miliseconds_per_move,
                  concurrent_queue<client_response>& responses_from_tree){
     switch(status){
         case own_turn:
-            std::this_thread::sleep_for(std::chrono::milliseconds(miliseconds_per_move-BUFFER_TIME));
-            tree_indications.emplace_back(tree_indication{move_request{}});
+            wait_for_move(miliseconds_per_move-BUFFER_TIME, tree_indications, responses_from_tree);
             forward_move_from_player_to_server(oms, responses_from_tree);
             break;
         case opponent_turn:

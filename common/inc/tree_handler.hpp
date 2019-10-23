@@ -23,11 +23,14 @@ class tree_handler{
         tree t;
         uint own_player_index;
         tree_history history;
+        uint simulations_count = 0;
+        uint simulations_limit;
         concurrent_queue<simulation_request>& requests_to_workers;
         concurrent_queue<client_response>& responses_to_server;
         void create_more_requests(void);
         bool address_still_usable(const simulation_response& response)const;
         node_address extract_usable_address(const simulation_response& response)const;
+        void handle_simulations_counter(void);
     public:
         tree_handler(void)=delete;
         tree_handler(const tree_handler&)=delete;
@@ -37,6 +40,7 @@ class tree_handler{
         ~tree_handler(void)=default;
         tree_handler(const reasoner::game_state& initial_state,
                      const std::string& own_player_name,
+                     uint simulations_limit,
                      concurrent_queue<simulation_request>& requests,
                      concurrent_queue<client_response>& responses_to_server);
         void handle_simulation_response(const simulation_response& response);

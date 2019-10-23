@@ -12,6 +12,7 @@ constexpr uint MAX_NEW_REQUESTS_PER_ITERATION = 20;
 constexpr uint MAX_TRIES_FOR_NON_TERMINAL_STATE = 20;
 constexpr uint MAX_SIMULATION_RESPONSES = 10;
 constexpr uint MILISECONDS_PER_MOVE = 1000;
+constexpr uint MILISECONDS_TIME_GRANULATION = 10;
 constexpr uint BUFFER_TIME = 10;
 constexpr uint SOCKET_BUFFER_SIZE = 1024;
 constexpr uint CHARGES = 0;
