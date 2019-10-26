@@ -47,11 +47,15 @@ bool is_move_already_available(concurrent_queue<client_response>& responses_from
 void wait_for_move(uint milisecond_to_wait,
                    concurrent_queue<tree_indication>& tree_indications,
                    concurrent_queue<client_response>& responses_from_tree){
-    const uint max_iterations = milisecond_to_wait/MILISECONDS_TIME_GRANULATION;
-    for(uint i=0;i<max_iterations;++i){
+    uint time_left = milisecond_to_wait;
+    std::chrono::steady_clock::time_point start_time(std::chrono::steady_clock::now());
+    while(time_left > MILISECONDS_TIME_GRANULATION){
         std::this_thread::sleep_for(std::chrono::milliseconds(MILISECONDS_TIME_GRANULATION));
         if(is_move_already_available(responses_from_tree))
             return;
+        std::chrono::steady_clock::time_point current_time(std::chrono::steady_clock::now());
+        uint time_spent = std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count();
+        time_left = time_spent > milisecond_to_wait ? 0 : milisecond_to_wait-time_spent;
     }
     tree_indications.emplace_back(tree_indication{move_request{}});
 }
