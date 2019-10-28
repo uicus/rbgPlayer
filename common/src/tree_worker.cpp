@@ -20,7 +20,7 @@ void run_tree_worker(const std::string& own_player_name,
             [&th](const simulation_response& response){th.handle_simulation_response(response);},
             [&th](const reasoner::move& m){th.handle_move_indication(m);},
             [&th](const move_request&){th.handle_move_request();},
-            [&th](const status_request&){th.handle_status_request();},
+            [&th,&initial_state](const reset_tree&){th.handle_reset_request(initial_state);},
             [](auto){assert(false);}
         }, indication.content);
     }

@@ -7,10 +7,10 @@
 #include<variant>
 
 struct move_request{};
-struct status_request{};
+struct reset_tree{};
 
 struct tree_indication{
-    std::variant<simulation_response, reasoner::move, move_request, status_request> content;
+    std::variant<simulation_response, reasoner::move, move_request, reset_tree> content;
 };
 
 #endif

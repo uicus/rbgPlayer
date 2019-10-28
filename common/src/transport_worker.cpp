@@ -16,12 +16,6 @@ game_status_indication get_game_status(concurrent_queue<client_response>& respon
     return std::get<game_status_indication>(response.content);
 }
 
-game_status_indication get_initial_game_status(concurrent_queue<tree_indication>& tree_indications,
-                                               concurrent_queue<client_response>& responses_from_tree){
-    tree_indications.emplace_back(tree_indication{status_request()});
-    return get_game_status(responses_from_tree);
-}
-
 reasoner::move get_move_from_player(concurrent_queue<client_response>& responses_from_tree){
     auto response = responses_from_tree.pop_front();
     assert(std::holds_alternative<reasoner::move>(response.content));
@@ -75,6 +69,8 @@ std::chrono::steady_clock::time_point handle_turn(uint miliseconds_per_move,
             forward_move_from_server_to_player(rmr, tree_indications);
             break;
         case end_game:
+            tree_indications.emplace_back(tree_indication{reset_tree()});
+            break;
         default:
             assert(false);
     }
@@ -95,9 +91,9 @@ void run_transport_worker(uint miliseconds_per_move,
                           own_moves_sender& oms,
                           concurrent_queue<tree_indication>& tree_indications,
                           concurrent_queue<client_response>& responses_from_tree){
-    game_status_indication current_status = get_initial_game_status(tree_indications, responses_from_tree);
+    game_status_indication current_status = get_game_status(responses_from_tree);
     std::chrono::steady_clock::time_point current_turn_start_time(std::chrono::steady_clock::now());
-    while(current_status != end_game){
+    while(true){
         current_turn_start_time = handle_turn(count_miliseconds_left_for_current_turn(miliseconds_per_move, current_turn_start_time),
                                               rmr,
                                               oms,

@@ -27,6 +27,7 @@ tree_handler::tree_handler(const reasoner::game_state& initial_state,
   , simulations_limit(simulations_limit)
   , requests_to_workers(requests_to_workers)
   , responses_to_server(responses_to_server){
+    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
     create_more_requests();
 }
 
@@ -72,7 +73,7 @@ void tree_handler::handle_move_indication(const reasoner::move& m){
     create_more_requests();
 }
 
-void tree_handler::handle_status_request(void){
+void tree_handler::handle_reset_request(const reasoner::game_state& initial_state){
+    t = initial_state;
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
-    create_more_requests();
 }
