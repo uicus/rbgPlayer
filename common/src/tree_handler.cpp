@@ -59,9 +59,9 @@ void tree_handler::handle_simulation_response(const simulation_response& respons
 }
 
 void tree_handler::handle_move_request(void){
-    std::cout << "[PLAYER] Performing move on the basis of " << simulations_count << " simulations." << std::endl;
     const auto& chosen_move = t.choose_best_move();
     responses_to_server.emplace_back(client_response{chosen_move});
+    std::cout << "[PLAYER] Performing move on the basis of " << simulations_count << " simulations." << std::endl;
     handle_move_indication(chosen_move);
 }
 
