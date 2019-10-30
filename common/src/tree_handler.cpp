@@ -75,5 +75,8 @@ void tree_handler::handle_move_indication(const reasoner::move& m){
 
 void tree_handler::handle_reset_request(const reasoner::game_state& initial_state){
     t = initial_state;
+    simulations_count = 0;
+    history = {};
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
+    create_more_requests();
 }
