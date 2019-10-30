@@ -17,15 +17,14 @@ reasoner::revert_information apply_random_semimove_from_given(reasoner::game_sta
     return ri;
 }
 
-std::vector<reasoner::semimove>& fill_semimoves_table(reasoner::game_state& state, 
-                                                      uint semidepth,
-                                                      moves_container& legal_semimoves,
-                                                      reasoner::resettable_bitarray_stack& cache){
+void fill_semimoves_table(reasoner::game_state& state,
+                          uint semidepth,
+                          moves_container& legal_semimoves,
+                          reasoner::resettable_bitarray_stack& cache){
     while(semidepth >= legal_semimoves.size())
         legal_semimoves.emplace_back();
     std::vector<reasoner::semimove>& semimoves = legal_semimoves[semidepth];
     state.get_all_semimoves(cache, semimoves, 1);
-    return semimoves;
 }
 
 bool apply_random_move_charge(reasoner::game_state &state,
@@ -33,14 +32,13 @@ bool apply_random_move_charge(reasoner::game_state &state,
                               moves_container& legal_semimoves,
                               reasoner::resettable_bitarray_stack& cache,
                               std::mt19937& mt){
-    std::vector<reasoner::semimove>& semimoves = fill_semimoves_table(state, semidepth, legal_semimoves, cache);
-    semidepth++;
-    if(semimoves.empty())
+    fill_semimoves_table(state, semidepth, legal_semimoves, cache);
+    if(legal_semimoves[semidepth].empty())
         return false;
-    auto ri = apply_random_semimove_from_given(state, semimoves, mt);
+    auto ri = apply_random_semimove_from_given(state, legal_semimoves[semidepth], mt);
     if(state.is_nodal())
         return true;
-    if(apply_random_move_charge(state, semidepth, legal_semimoves, cache, mt))
+    if(apply_random_move_charge(state, semidepth+1, legal_semimoves, cache, mt))
         return true;
     state.revert(ri);
     return false;
@@ -61,13 +59,12 @@ bool apply_random_move_exhaustive(reasoner::game_state &state,
                                   moves_container& legal_semimoves,
                                   reasoner::resettable_bitarray_stack& cache,
                                   std::mt19937& mt){
-    std::vector<reasoner::semimove>& semimoves = fill_semimoves_table(state, semidepth, legal_semimoves, cache);
-    semidepth++;
-    while(not semimoves.empty()){
-        auto ri = apply_random_semimove_from_given(state, semimoves, mt);
+    fill_semimoves_table(state, semidepth, legal_semimoves, cache);
+    while(not legal_semimoves[semidepth].empty()){
+        auto ri = apply_random_semimove_from_given(state, legal_semimoves[semidepth], mt);
         if(state.is_nodal())
             return true;
-        if(apply_random_move_exhaustive(state, semidepth, legal_semimoves, cache, mt))
+        if(apply_random_move_exhaustive(state, semidepth+1, legal_semimoves, cache, mt))
             return true;
         state.revert(ri);
     }
