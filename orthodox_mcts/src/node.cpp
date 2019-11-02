@@ -99,7 +99,8 @@ priority node::get_priority(uint parent_simulations, uint parent_player)const{
 }
 
 const reasoner::move& node::choose_best_move(const state_tracker& tracker){
-    assert(children and not children->empty());
+    assert(children);
+    assert(not children->empty());
     std::vector<double> children_to_choose;
     std::transform(children->begin(), children->end(), std::back_inserter(children_to_choose),
         [&tracker](const auto& el){return el.average_score(tracker);});
@@ -126,6 +127,8 @@ uint node::get_node_index_by_move(const reasoner::move& m, state_tracker& tracke
     return std::distance(children->begin(), result);
 }
 
-bool node::is_terminal(void)const{
+bool node::is_terminal(state_tracker& tracker){
+    if(not children)
+        children = tracker.generate_children();
     return children and children->empty();
 }

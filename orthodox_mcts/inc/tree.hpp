@@ -28,8 +28,8 @@ class tree{
         std::tuple<node_address, reasoner::game_state> choose_state_for_simulation(void);
         uint reparent_along_move(const reasoner::move& m);
         const reasoner::move& choose_best_move(void);
-        game_status_indication get_status(uint own_index)const;
-        bool should_simulate(uint own_index)const;
+        game_status_indication get_status(uint own_index);
+        bool should_simulate(uint own_index);
 };
 
 #endif

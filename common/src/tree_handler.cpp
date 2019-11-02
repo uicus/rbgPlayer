@@ -74,6 +74,7 @@ void tree_handler::handle_move_indication(const reasoner::move& m){
 }
 
 void tree_handler::handle_reset_request(const reasoner::game_state& initial_state){
+    std::cout << "[PLAYER] Reset Request!" << std::endl;
     t = initial_state;
     simulations_count = 0;
     history = {};

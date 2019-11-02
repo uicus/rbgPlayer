@@ -69,7 +69,7 @@ std::chrono::steady_clock::time_point handle_turn(uint miliseconds_per_move,
             forward_move_from_server_to_player(rmr, tree_indications);
             break;
         case end_game:
-            tree_indications.emplace_back(tree_indication{reset_tree()});
+            tree_indications.emplace_back(tree_indication{reset_tree{}});
             break;
         default:
             assert(false);

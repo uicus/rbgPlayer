@@ -52,8 +52,9 @@ const reasoner::move& tree::choose_best_move(void){
     return nodes_register[root_index].choose_best_move(tracker);
 }
 
-game_status_indication tree::get_status(uint own_index)const{
-    if(nodes_register[root_index].is_terminal())
+game_status_indication tree::get_status(uint own_index){
+    state_tracker tracker(cache, nodes_register, root_state);
+    if(nodes_register[root_index].is_terminal(tracker))
         return end_game;
     else if(uint(root_state.get_current_player())-1 == own_index)
         return own_turn;
@@ -61,7 +62,7 @@ game_status_indication tree::get_status(uint own_index)const{
         return opponent_turn;
 }
 
-bool tree::should_simulate(uint own_index)const{
+bool tree::should_simulate(uint own_index){
     return get_status(own_index) == own_turn;
     // return true;
 }
