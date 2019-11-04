@@ -6,6 +6,8 @@ import shutil
 from threading import Thread
 import queue
 import time
+import argparse
+from argparse import RawTextHelpFormatter
 
 class BufferedSocket:
     def __init__(self, s):
@@ -39,16 +41,26 @@ class BufferedSocket:
     def shutdown(self):
         self.working_socket.shutdown(socket.SHUT_RDWR)
 
+class PlayerConfig:
+    def __init__(self, program_args, player_name):
+        self.player_kind = program_args.player_kind
+        self.address_to_connect = "127.0.0.1"
+        self.port_to_connect = program_args.player_port
+        self.number_of_threads = program_args.number_of_threads
+        self.miliseconds_per_move = program_args.miliseconds_per_move
+        self.simulations_limit = program_args.simulations_limit
+        self.semimoves_length = program_args.semimoves_length
+        self.player_name = player_name
+    def runnable_list(self):
+        return ["bin/"+self.player_kind, str(self.address_to_connect), str(self.port_to_connect), str(self.player_name), str(max(self.number_of_threads-1,1)), str(self.miliseconds_per_move), str(self.simulations_limit), str(self.semimoves_length)]
+
 gen_directory = "gen"
 gen_inc_directory = gen_directory+"/inc"
 gen_src_directory = gen_directory+"/src"
 game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
+available_players = set(["semisplitFlat", "orthodoxFlat", "orthodoxMcts"])
 semisplit_players = set(["semisplitFlat"])
-
-if len(sys.argv) != 8:
-    print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads> <miliseconds-per-move> <simulations-limit>")
-    exit()
 
 def get_game_section(game, section):
     game_sections = game.split("#")
@@ -107,15 +119,14 @@ def wait_for_player_connection(player_address, player_port, return_value_queue):
     player_socket, _ = accept_socket.accept()
     return_value_queue.put(player_socket)
 
-def start_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move, simulations_limit):
-    workers = max(number_of_threads-1, 1)
-    return subprocess.Popen(["bin/"+player_kind, str(player_address), str(player_port), str(player_name), str(workers), str(miliseconds_per_move), str(simulations_limit)])
+def start_player(player_config):
+    return subprocess.Popen(player_config.runnable_list())
 
-def start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move, simulations_limit):
+def start_and_connect_player(player_address, player_port, player_config):
     return_value_queue = queue.Queue()
     player_connection_wait = Thread(target = wait_for_player_connection, args = (player_address, player_port, return_value_queue))
     player_connection_wait.start()
-    player_process = start_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move, simulations_limit)
+    player_process = start_player(player_config)
     player_connection_wait.join()
     return BufferedSocket(return_value_queue.get()), player_process
 
@@ -130,29 +141,36 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         print(log_begin, human_readable, log_end)
         target_socket.send_message(data)
 
-player_address = "127.0.0.1"
-player_kind = sys.argv[1]
-player_port = int(sys.argv[2])
-server_address = sys.argv[3]
-server_port = int(sys.argv[4])
-number_of_threads = int(sys.argv[5])
-miliseconds_per_move = int(sys.argv[6])
-simulations_limit = int(sys.argv[7])
+# if len(sys.argv) != 8:
+    # print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads> <miliseconds-per-move> <simulations-limit>")
+    # exit()
 
-server_socket = BufferedSocket(connect_to_server(server_address, server_port))
+parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
+parser.add_argument('player_kind', metavar='player-kind', type=str, help='kind of player backend (available: '+', '.join(available_players)+')')
+parser.add_argument('player_port', metavar='player-port', type=int, help='port number of internal player backend')
+parser.add_argument('server_address', metavar='server-address', type=str, help='ip address of game manager')
+parser.add_argument('server_port', metavar='server-port', type=int, help='port number of game manager')
+parser.add_argument('--number-of-threads', dest='number_of_threads', type=int, default=2, help='number of player and makefile threads (default: 2)\nnote that player always consist of at least two worker threads: tree manager and simulator')
+parser.add_argument('--miliseconds-per-move', dest='miliseconds_per_move', type=int, default=2000, help='time limit for player\'s turn in miliseconds (default: 2000)')
+parser.add_argument('--simulations-limit', dest='simulations_limit', type=int, default=1000000, help='simulations limit for player\'s turn (default: 1000000)')
+parser.add_argument('--semimoves-length', dest='semimoves_length', type=int, default=1, help='length of semimoves (default: 1)\nonly applicable to semisplit player kinds')
+program_args = parser.parse_args()
+
+server_socket = BufferedSocket(connect_to_server(program_args.server_address, program_args.server_port))
 print("Successfully connected to server!")
 
 game = write_game_to_file(server_socket)
 print("Game rules written to:",game_path)
 
-compile_player(number_of_threads, player_kind)
+compile_player(program_args.number_of_threads, program_args.player_kind)
 print("Player compiled!")
 time.sleep(1.) # to give other players time to end compilation
 
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
-player_socket, player_process = start_and_connect_player(player_address, player_port, player_name, number_of_threads, player_kind, miliseconds_per_move, simulations_limit)
+player_config = PlayerConfig(program_args, player_name)
+player_socket, player_process = start_and_connect_player("localhost", program_args.player_port, player_config)
 print("Player started!")
 
 server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))

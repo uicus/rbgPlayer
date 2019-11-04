@@ -37,7 +37,8 @@ bool handle_move(reasoner::game_state& state,
 simulation_result perform_simulation(reasoner::game_state& state,
                                      reasoner::resettable_bitarray_stack& cache,
                                      moves_container& mc,
-                                     std::mt19937& mt){
+                                     std::mt19937& mt,
+                                     uint){
     while(handle_move(state, cache, mc, mt));
     return simulation_result(state);
 }
