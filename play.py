@@ -9,6 +9,14 @@ import time
 import argparse
 from argparse import RawTextHelpFormatter
 
+gen_directory = "gen"
+gen_inc_directory = gen_directory+"/inc"
+gen_src_directory = gen_directory+"/src"
+game_name = "game"
+game_path = gen_directory+"/"+game_name+".rbg"
+available_players = set(["semisplitFlat", "orthodoxFlat", "orthodoxMcts"])
+semisplit_players = set(["semisplitFlat"])
+
 class BufferedSocket:
     def __init__(self, s):
         self.current_buffer = bytearray()
@@ -52,15 +60,24 @@ class PlayerConfig:
         self.semimoves_length = program_args.semimoves_length
         self.player_name = player_name
     def runnable_list(self):
-        return ["bin/"+self.player_kind, str(self.address_to_connect), str(self.port_to_connect), str(self.player_name), str(max(self.number_of_threads-1,1)), str(self.miliseconds_per_move), str(self.simulations_limit), str(self.semimoves_length)]
-
-gen_directory = "gen"
-gen_inc_directory = gen_directory+"/inc"
-gen_src_directory = gen_directory+"/src"
-game_name = "game"
-game_path = gen_directory+"/"+game_name+".rbg"
-available_players = set(["semisplitFlat", "orthodoxFlat", "orthodoxMcts"])
-semisplit_players = set(["semisplitFlat"])
+        return ["bin/"+self.player_kind]
+    def print_config_file(self, name):
+        with open(gen_inc_directory+"/"+name,"w") as config_file:
+            config_file.write("#ifndef CONFIG\n")
+            config_file.write("#define CONFIG\n")
+            config_file.write("\n")
+            config_file.write("#include \"types.hpp\"\n")
+            config_file.write("#include <string>\n")
+            config_file.write("\n")
+            config_file.write("const std::string ADDRESS = \""+self.address_to_connect+"\";\n")
+            config_file.write("constexpr uint PORT = "+str(self.port_to_connect)+";\n")
+            config_file.write("constexpr uint WORKERS_COUNT = "+str(max(self.number_of_threads-1,1))+";\n")
+            config_file.write("constexpr uint MILISECONDS_PER_MOVE = "+str(self.miliseconds_per_move)+";\n")
+            config_file.write("constexpr uint SIMULATIONS_PER_MOVE = "+str(self.simulations_limit)+";\n")
+            config_file.write("constexpr uint SEMIMOVES_LENGTH = "+str(self.semimoves_length)+";\n")
+            config_file.write("const std::string NAME = \""+self.player_name+"\";\n")
+            config_file.write("\n")
+            config_file.write("#endif\n")
 
 def get_game_section(game, section):
     game_sections = game.split("#")
@@ -141,10 +158,6 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         print(log_begin, human_readable, log_end)
         target_socket.send_message(data)
 
-# if len(sys.argv) != 8:
-    # print("Usage:",sys.argv[0],"<player-kind> <player-port> <server-address> <server-port> <number-of-threads> <miliseconds-per-move> <simulations-limit>")
-    # exit()
-
 parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
 parser.add_argument('player_kind', metavar='player-kind', type=str, help='kind of player backend (available: '+', '.join(available_players)+')')
 parser.add_argument('player_port', metavar='player-port', type=int, help='port number of internal player backend')
@@ -162,14 +175,16 @@ print("Successfully connected to server!")
 game = write_game_to_file(server_socket)
 print("Game rules written to:",game_path)
 
-compile_player(program_args.number_of_threads, program_args.player_kind)
-print("Player compiled!")
-time.sleep(1.) # to give other players time to end compilation
-
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
 player_config = PlayerConfig(program_args, player_name)
+player_config.print_config_file("config.hpp")
+
+compile_player(program_args.number_of_threads, program_args.player_kind)
+print("Player compiled!")
+time.sleep(1.) # to give other players time to end compilation
+
 player_socket, player_process = start_and_connect_player("localhost", program_args.player_port, player_config)
 print("Player started!")
 

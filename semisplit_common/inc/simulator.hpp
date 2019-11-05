@@ -17,7 +17,6 @@ class simulation_result;
 simulation_result perform_simulation(reasoner::game_state& state,
                                      reasoner::resettable_bitarray_stack& cache,
                                      moves_container& legal_semimoves,
-                                     std::mt19937& mt,
-                                     uint semimoves_length);
+                                     std::mt19937& mt);
 
 #endif

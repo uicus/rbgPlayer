@@ -7,13 +7,11 @@
 #include"client_response.hpp"
 #include"overloaded.hpp"
 
-void run_tree_worker(const std::string& own_player_name,
-                     uint simulations_limit,
-                     concurrent_queue<simulation_request>& requests_to_workers,
+void run_tree_worker(concurrent_queue<simulation_request>& requests_to_workers,
                      concurrent_queue<client_response>& responses_to_server,
                      concurrent_queue<tree_indication>& tree_indications){
     reasoner::game_state initial_state;
-    tree_handler th(initial_state, own_player_name, simulations_limit, requests_to_workers, responses_to_server);
+    tree_handler th(initial_state, requests_to_workers, responses_to_server);
     while(true){
         const auto indication = tree_indications.pop_front();
         std::visit(overloaded{

@@ -17,14 +17,11 @@ uint get_player_index(const std::string& name){
 }
 
 tree_handler::tree_handler(const reasoner::game_state& initial_state,
-                           const std::string& own_player_name,
-                           uint simulations_limit,
                            concurrent_queue<simulation_request>& requests_to_workers,
                            concurrent_queue<client_response>& responses_to_server)
   : t(initial_state)
-  , own_player_index(get_player_index(own_player_name))
+  , own_player_index(get_player_index(NAME))
   , history()
-  , simulations_limit(simulations_limit)
   , requests_to_workers(requests_to_workers)
   , responses_to_server(responses_to_server){
     responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
@@ -43,7 +40,7 @@ void tree_handler::create_more_requests(){
 }
 
 void tree_handler::handle_simulations_counter(void){
-    if(++simulations_count >= simulations_limit)
+    if(++simulations_count >= SIMULATIONS_PER_MOVE)
         handle_move_request();
 }
 

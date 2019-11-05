@@ -13,9 +13,7 @@ namespace reasoner{
     class game_state;
 }
 
-void run_tree_worker(const std::string& own_player_name,
-                     uint simulations_limit,
-                     concurrent_queue<simulation_request>& requests_to_workers,
+void run_tree_worker(concurrent_queue<simulation_request>& requests_to_workers,
                      concurrent_queue<client_response>& responses_to_server,
                      concurrent_queue<tree_indication>& tree_indications);
 

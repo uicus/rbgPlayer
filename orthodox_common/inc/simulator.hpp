@@ -17,7 +17,6 @@ class simulation_result;
 simulation_result perform_simulation(reasoner::game_state& state,
                                      reasoner::resettable_bitarray_stack& cache,
                                      moves_container& mc,
-                                     std::mt19937& mt,
-                                     uint);
+                                     std::mt19937& mt);
 
 #endif
