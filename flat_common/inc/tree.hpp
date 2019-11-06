@@ -8,8 +8,7 @@
 #include"types.hpp"
 #include"node_address.hpp"
 #include"node.hpp"
-
-class simulation_result;
+#include"simulation_result.hpp"
 
 class tree{
         reasoner::game_state root_state;

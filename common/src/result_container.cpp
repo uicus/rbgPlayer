@@ -1,16 +1,16 @@
-#include"simulation_result.hpp"
+#include"result_container.hpp"
 
-simulation_result::simulation_result(const reasoner::game_state& state){
+result_container::result_container(const reasoner::game_state& state){
     for (uint i = 1; i < reasoner::NUMBER_OF_PLAYERS; ++i)
         scores[i-1] = state.get_player_score(i);
 }
 
-simulation_result& simulation_result::operator+=(const simulation_result& rhs){
+result_container& result_container::operator+=(const result_container& rhs){
     for (uint i = 1; i < reasoner::NUMBER_OF_PLAYERS; ++i)
         scores[i-1] += rhs.scores[i-1];
     return *this;
 }
 
-double simulation_result::get_player_score_divided_by(uint player, uint denominator)const{
+double result_container::get_player_score_divided_by(uint player, uint denominator)const{
     return double(scores[player])/double(denominator);
 }

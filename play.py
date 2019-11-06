@@ -159,7 +159,7 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         target_socket.send_message(data)
 
 parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
-parser.add_argument('player_kind', metavar='player-kind', type=str, help='kind of player backend (available: '+', '.join(available_players)+')')
+parser.add_argument('player_kind', metavar='player-kind', type=str, choices=available_players, help='kind of player backend (available: '+', '.join(available_players)+')')
 parser.add_argument('player_port', metavar='player-port', type=int, help='port number of internal player backend')
 parser.add_argument('server_address', metavar='server-address', type=str, help='ip address of game manager')
 parser.add_argument('server_port', metavar='server-port', type=int, help='port number of game manager')

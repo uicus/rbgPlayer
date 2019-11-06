@@ -6,8 +6,7 @@
 #include"reasoner.hpp"
 #include"types.hpp"
 #include"node.hpp"
-
-class simulation_result;
+#include"simulation_result.hpp"
 
 class tree{
         std::vector<node> nodes_register = {};

@@ -1,6 +1,5 @@
-#include"simulator.hpp"
+#include"simulator_turn_handler.hpp"
 #include"reasoner.hpp"
-#include"simulation_result.hpp"
 #include"constants.hpp"
 
 namespace{
@@ -85,6 +84,7 @@ bool handle_player_move(reasoner::game_state &state,
     return apply_random_charge(state, legal_semimoves, cache, mt)
         or apply_random_exhaustive(state, legal_semimoves, cache, mt);
 }
+}
 
 bool handle_move(reasoner::game_state& state,
                  reasoner::resettable_bitarray_stack& cache,
@@ -94,14 +94,5 @@ bool handle_move(reasoner::game_state& state,
         return handle_keeper_move(state, cache);
     else
         return handle_player_move(state, cache, legal_semimoves, mt);
-}
-}
-
-simulation_result perform_simulation(reasoner::game_state& state,
-                                     reasoner::resettable_bitarray_stack& cache,
-                                     moves_container& legal_semimoves,
-                                     std::mt19937& mt){
-    while(handle_move(state, cache, legal_semimoves, mt));
-    return simulation_result(state);
 }
 

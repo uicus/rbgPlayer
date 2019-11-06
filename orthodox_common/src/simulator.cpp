@@ -1,6 +1,5 @@
 #include"simulator.hpp"
 #include"reasoner.hpp"
-#include"simulation_result.hpp"
 #include"constants.hpp"
 
 namespace{

@@ -16,6 +16,7 @@ ORTHODOX_MCTS := orthodox_mcts
 ORTHODOX_COMMON := orthodox_common
 FLAT_COMMON := flat_common
 SEMISPLIT_COMMON := semisplit_common
+SEMISPLIT_FLAT := semisplit_flat
 REASONER := reasoner
 
 C := g++
@@ -45,7 +46,7 @@ endef
 
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_FLAT,orthodoxFlat,$(FLAT_COMMON) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
-$(eval $(call PLAYER_KIND_RULES,SEMISPLIT_FLAT,semisplitFlat,$(FLAT_COMMON) $(SEMISPLIT_COMMON) $(COMMON) $(GEN_DIR)))
+$(eval $(call PLAYER_KIND_RULES,SEMISPLIT_FLAT,semisplitFlat,$(FLAT_COMMON) $(SEMISPLIT_COMMON) $(SEMISPLIT_FLAT) $(COMMON) $(GEN_DIR)))
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
