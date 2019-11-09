@@ -32,7 +32,7 @@ std::tuple<node_address, reasoner::game_state> tree::choose_state_for_simulation
     return {std::move(address), tracker.get_state()};
 }
 
-uint tree::reparent_along_move(const reasoner::move& m){
+node_address tree::reparent_along_move(const reasoner::move& m){
     std::vector<node> new_nodes_register;
     state_tracker tracker(cache, nodes_register, root_state);
     mitigate_pointers_invalidation_during_expansion();
@@ -44,7 +44,7 @@ uint tree::reparent_along_move(const reasoner::move& m){
     new_nodes_register.emplace_back(std::move(cloned_root_node));
     root_index = new_nodes_register.size()-1;
     std::swap(new_nodes_register, nodes_register);
-    return move_index;
+    return {move_index};
 }
 
 const reasoner::move& tree::choose_best_move(void){

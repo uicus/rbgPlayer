@@ -47,8 +47,8 @@ std::tuple<node_address, reasoner::game_state> tree::choose_state_for_simulation
     return {chosen_child, children[chosen_child].get_state()};
 }
 
-uint tree::reparent_along_move(const reasoner::move& m){
-    uint child_index = get_node_index_by_move(m);
+node_address tree::reparent_along_move(const reasoner::move& m){
+    node_address child_index = get_node_index_by_move(m);
     root_state = children[child_index].get_state();
     create_children();
     return child_index;

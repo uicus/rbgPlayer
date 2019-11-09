@@ -25,7 +25,7 @@ class tree{
         tree(const reasoner::game_state& initial_state);
         void apply_simulation_result(const node_address& address, const simulation_result& result);
         std::tuple<node_address, reasoner::game_state> choose_state_for_simulation(void);
-        uint reparent_along_move(const reasoner::move& m);
+        node_address reparent_along_move(const reasoner::move& m);
         const reasoner::move& choose_best_move(void);
         game_status_indication get_status(uint own_index);
         bool should_simulate(uint own_index);

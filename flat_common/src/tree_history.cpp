@@ -17,6 +17,6 @@ node_address tree_history::extract_usable_address(const simulation_response& res
     return response.address;
 }
 
-void tree_history::notify_about_move(uint){
+void tree_history::notify_about_move(node_address){
     ++current_turn;
 }

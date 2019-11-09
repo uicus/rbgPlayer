@@ -19,7 +19,7 @@ class tree_history{
         bool address_fully_usable(const simulation_response& response)const;
         bool address_partially_usable(const simulation_response& response)const;
         node_address extract_usable_address(const simulation_response& response)const;
-        void notify_about_move(uint move_index);
+        void notify_about_move(node_address address);
 };
 
 #endif
