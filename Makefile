@@ -12,11 +12,13 @@ BIN_DIR := bin
 DEP_DIR := dep
 GEN_DIR := gen
 COMMON := common
-ORTHODOX_MCTS := orthodox_mcts
-ORTHODOX_COMMON := orthodox_common
+MCTS_COMMON := mcts_common
 FLAT_COMMON := flat_common
+ORTHODOX_COMMON := orthodox_common
+ORTHODOX_MCTS := orthodox_mcts
 SEMISPLIT_COMMON := semisplit_common
 SEMISPLIT_FLAT := semisplit_flat
+SEMISPLIT_MCTS := semisplit_mcts
 REASONER := reasoner
 
 C := g++
@@ -44,9 +46,10 @@ $(2): $$($(1)_OBJECTS) | $(BIN_DIR)
 	$(C) $$($(1)_CFLAGS) $$($(1)_OBJECTS) -o $(BIN_DIR)/$$@
 endef
 
-$(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
+$(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(MCTS_COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_FLAT,orthodoxFlat,$(FLAT_COMMON) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,SEMISPLIT_FLAT,semisplitFlat,$(FLAT_COMMON) $(SEMISPLIT_COMMON) $(SEMISPLIT_FLAT) $(COMMON) $(GEN_DIR)))
+$(eval $(call PLAYER_KIND_RULES,SEMISPLIT_MCTS,semisplitMcts,$(SEMISPLIT_COMMON) $(SEMISPLIT_MCTS) $(COMMON) $(MCTS_COMMON) $(GEN_DIR)))
 
 ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
     -include $(DEPFILES)
