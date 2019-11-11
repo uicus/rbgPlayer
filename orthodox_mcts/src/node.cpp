@@ -33,7 +33,7 @@ const node& node::get_node_by_address(const node_address& address, uint current_
     if(current_address_position >= address.size())
         return *this;
     else{
-        tracker.go_along_move((*children)[address[current_address_position]].get_move());
+        tracker.go_along_move((*children)[address[current_address_position]].get_label());
         (*children)[address[current_address_position]].create_target(tracker);
         return
             (*children)[address[current_address_position]]
@@ -72,7 +72,7 @@ void node::choose_state_for_simulation(node_address& current_address, state_trac
             ++number_of_attempts;
             (*children)[choice].create_target(tracker);
             current_address.push_back(choice);
-            tracker.go_along_move((*children)[choice].get_move());
+            tracker.go_along_move((*children)[choice].get_label());
             (*children)[choice]
                 .get_target(tracker)
                 .choose_state_for_simulation(current_address, tracker);
@@ -106,7 +106,7 @@ const reasoner::move& node::choose_best_move(const state_tracker& tracker){
         [&tracker](const auto& el){return el.average_score(tracker);});
     const auto chosen_child = std::max_element(children_to_choose.begin(), children_to_choose.end());
     const auto choice_number = std::distance(children_to_choose.begin(), chosen_child);
-    return (*children)[choice_number].get_move();
+    return (*children)[choice_number].get_label();
 }
 
 node_address node::choose_state_for_simulation(state_tracker& tracker){

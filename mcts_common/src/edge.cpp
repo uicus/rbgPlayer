@@ -49,6 +49,6 @@ double edge::average_score(const state_tracker& tracker)const{
         return get_target(tracker).average_score(tracker.get_current_player());
 }
 
-const reasoner::move& edge::get_move(void)const{
+const reasoner::move& edge::get_label(void)const{
     return label;
 }
