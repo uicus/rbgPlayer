@@ -38,10 +38,6 @@ priority edge::get_priority(uint parent_simulations, const state_tracker& tracke
         return get_target(tracker).get_priority(parent_simulations, tracker.get_current_player());
 }
 
-bool edge::matches(const reasoner::move& m)const{
-    return label == m;
-}
-
 double edge::average_score(const state_tracker& tracker)const{
     if(not target)
         return 0.0;

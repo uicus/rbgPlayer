@@ -24,6 +24,6 @@ node_address tree_history::extract_usable_address(const simulation_response& res
     return node_address(response.address.begin()+lag,response.address.end());
 }
 
-void tree_history::notify_about_move(node_address address){
+void tree_history::notify_about_move(const node_address& address){
     past_moves.insert(past_moves.end(), address.begin(), address.end());
 }
