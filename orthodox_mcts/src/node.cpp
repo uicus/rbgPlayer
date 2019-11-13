@@ -2,31 +2,17 @@
 #include"constants.hpp"
 #include"state_tracker.hpp"
 #include"edge.hpp"
-#include<cmath>
 #include<algorithm>
 
 node node::clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
     node result;
-    result.number_of_simulations = number_of_simulations;
-    result.number_of_attempts = number_of_attempts;
-    result.sum_of_scores = sum_of_scores;
+    result.rating = rating;
     if(children){
         result.children = std::vector<edge>();
         std::transform(children->begin(), children->end(), std::back_inserter(*result.children),
             [&new_nodes_register, &tracker](const auto& el){return el.clone_edge(new_nodes_register, tracker);});
     }
     return result;
-}
-
-double node::average_score(uint player)const{
-    if(number_of_simulations == 0)
-        return EXPECTED_MAX_SCORE;
-    else
-        return sum_of_scores.get_player_score_divided_by(player, number_of_simulations);
-}
-
-double node::exploration_value(uint parent_simulations)const{
-    return EXPLORATION_CONSTANT*sqrt(log(double(parent_simulations))/double(number_of_attempts));
 }
 
 const node& node::get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker){
@@ -42,16 +28,11 @@ const node& node::get_node_by_address(const node_address& address, uint current_
     }
 }
 
-void node::apply_simulation_result(const simulation_result& result){
-    sum_of_scores += result;
-    ++number_of_simulations;
-}
-
 void node::apply_simulation_result_for_address(const simulation_result& result,
                                                const node_address& address,
                                                uint current_address_position,
                                                state_tracker& tracker){
-    apply_simulation_result(result);
+    rating.apply_simulation_result(result);
     if(current_address_position < address.size()){
         (*children)[address[current_address_position]]
             .get_target(tracker)
@@ -60,16 +41,11 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
 }
 
 void node::choose_state_for_simulation(node_address& current_address, state_tracker& tracker){
-    if(number_of_attempts==0)
-        ++number_of_attempts;
-    else{
+    if(rating.ever_visited()){
         if(not children)
             children = tracker.generate_children();
-        if(children->empty())
-            ++number_of_attempts;
-        else{
+        if(not children->empty()){
             uint choice = children_with_highest_priority(tracker);
-            ++number_of_attempts;
             (*children)[choice].create_target(tracker);
             current_address.push_back(choice);
             tracker.go_along_move((*children)[choice].get_label());
@@ -78,24 +54,18 @@ void node::choose_state_for_simulation(node_address& current_address, state_trac
                 .choose_state_for_simulation(current_address, tracker);
         }
     }
+    rating.apply_simulation_trial();
 }
 
 uint node::children_with_highest_priority(const state_tracker& tracker)const{
     std::vector<priority> candidates;
     std::transform(children->begin(), children->end(), std::back_inserter(candidates),
-        [this, &tracker](const auto& el){return el.get_priority(number_of_attempts, tracker);});
+        [this, &tracker](const auto& el){return el.get_priority(rating, tracker);});
     return std::distance(candidates.begin(), std::max_element(candidates.begin(), candidates.end()));
 }
 
 const node& node::get_node_by_address(const node_address& address, state_tracker& tracker){
     return get_node_by_address(address, 0, tracker);
-}
-
-priority node::get_priority(uint parent_simulations, uint parent_player)const{
-    if(number_of_attempts == 0)
-        return INF;
-    else
-        return average_score(parent_player)/EXPECTED_MAX_SCORE+exploration_value(parent_simulations);
 }
 
 const reasoner::move& node::choose_best_move(const state_tracker& tracker){
@@ -131,4 +101,8 @@ bool node::is_terminal(state_tracker& tracker){
     if(not children)
         children = tracker.generate_children();
     return children and children->empty();
+}
+
+const node_rating& node::get_rating(void)const{
+    return rating;
 }

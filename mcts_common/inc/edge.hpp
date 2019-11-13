@@ -8,6 +8,7 @@
 
 class state_tracker;
 class node;
+class node_rating;
 
 class edge{
         label_type label;
@@ -24,7 +25,7 @@ class edge{
         void create_target(state_tracker& tracker);
         node& get_target(state_tracker& tracker);
         const node& get_target(const state_tracker& tracker)const;
-        priority get_priority(uint parent_simulations, const state_tracker& tracker)const;
+        priority get_priority(const node_rating& parent_rating, const state_tracker& tracker)const;
         double average_score(const state_tracker& tracker)const;
         const label_type& get_label(void)const;
 };

@@ -1,5 +1,6 @@
 #include"edge.hpp"
 #include"node.hpp"
+#include"node_rating.hpp"
 #include"constants.hpp"
 #include"state_tracker.hpp"
 
@@ -31,18 +32,18 @@ node& edge::get_target(state_tracker& tracker){
     return tracker.get_node(*target);
 }
 
-priority edge::get_priority(uint parent_simulations, const state_tracker& tracker)const{
+priority edge::get_priority(const node_rating& parent_rating, const state_tracker& tracker)const{
     if(not target)
         return INF;
     else
-        return get_target(tracker).get_priority(parent_simulations, tracker.get_current_player());
+        return get_target(tracker).get_rating().get_priority(parent_rating, tracker.get_current_player());
 }
 
 double edge::average_score(const state_tracker& tracker)const{
     if(not target)
         return 0.0;
     else
-        return get_target(tracker).average_score(tracker.get_current_player());
+        return get_target(tracker).get_rating().average_score(tracker.get_current_player());
 }
 
 const reasoner::move& edge::get_label(void)const{
