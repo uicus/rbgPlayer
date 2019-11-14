@@ -156,7 +156,10 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
             quit()
         human_readable = data
         print(log_begin, human_readable, log_end)
-        target_socket.send_message(data)
+        if data != b'reset':
+            target_socket.send_message(data)
+        else:
+            print("Silently dropping reset event...")
 
 parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
 parser.add_argument('player_kind', metavar='player-kind', type=str, choices=available_players, help='kind of player backend (available: '+', '.join(available_players)+')')
