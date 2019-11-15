@@ -1,13 +1,13 @@
 #ifndef NODE_RATING
 #define NODE_RATING
 
-#include"simulation_result.hpp"
+#include"result_container.hpp"
 #include"types.hpp"
 
 class node_rating{
         uint number_of_simulations = 0;
         uint number_of_attempts = 0;
-        simulation_result sum_of_scores = {};
+        result_container sum_of_scores = {};
         double exploration_value(uint parent_simulations)const;
     public:
         node_rating(void)=default;
@@ -19,7 +19,8 @@ class node_rating{
         double average_score(uint player)const;
         priority get_priority(const node_rating& parent_rating, uint parent_player)const;
         bool ever_visited(void)const;
-        void apply_simulation_result(const simulation_result& result);
+        bool ever_succeeded_simulation(void)const;
+        void apply_simulation_result(const result_container& result);
         void apply_simulation_trial(void);
 };
 

@@ -7,6 +7,7 @@
 #include"types.hpp"
 #include"node_address.hpp"
 #include"node_rating.hpp"
+#include"simulation_result.hpp"
 #include"edge.hpp"
 
 class state_tracker;
@@ -33,7 +34,7 @@ class node{
         const reasoner::move& choose_best_move(const state_tracker& tracker);
         node_address choose_state_for_simulation(state_tracker& tracker);
         void apply_simulation_result_for_address(const simulation_result& result, const node_address& address, state_tracker& tracker);
-        uint get_node_index_by_move(const reasoner::move& m, state_tracker& tracker);
+        node_address get_node_address_by_move(const reasoner::move& m, state_tracker& tracker);
         bool is_terminal(state_tracker& tracker);
         const node_rating& get_rating(void)const;
 };

@@ -24,7 +24,11 @@ bool node_rating::ever_visited(void)const{
     return number_of_attempts > 0;
 }
 
-void node_rating::apply_simulation_result(const simulation_result& result){
+bool node_rating::ever_succeeded_simulation(void)const{
+    return number_of_simulations > 0;
+}
+
+void node_rating::apply_simulation_result(const result_container& result){
     sum_of_scores += result;
     ++number_of_simulations;
 }

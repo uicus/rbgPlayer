@@ -4,7 +4,7 @@
 #include"constants.hpp"
 #include"state_tracker.hpp"
 
-edge::edge(const reasoner::move& label)
+edge::edge(const label_type& label)
   : label(label){}
 
 edge edge::clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
@@ -46,6 +46,6 @@ double edge::average_score(const state_tracker& tracker)const{
         return get_target(tracker).get_rating().average_score(tracker.get_current_player());
 }
 
-const reasoner::move& edge::get_label(void)const{
+const label_type& edge::get_label(void)const{
     return label;
 }
