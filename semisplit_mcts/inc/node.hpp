@@ -14,6 +14,7 @@ class state_tracker;
 
 enum node_status{
     unknown,
+    simulation_ongoing,
     terminal,
     nonterminal
 };

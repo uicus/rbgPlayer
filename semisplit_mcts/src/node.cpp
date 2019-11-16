@@ -33,7 +33,14 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
                                                const node_address& address,
                                                uint current_address_position,
                                                state_tracker& tracker){
-    assert(false); // TODO
+    if(result.has_value())
+        rating.apply_simulation_result(*result);
+    if(current_address_position < address.size())
+        (*children)[address[current_address_position]]
+            .get_target(tracker)
+            .apply_simulation_result_for_address(result, address, current_address_position+1, tracker);
+    if(status == simulation_ongoing and current_address_position == address.size())
+        status = result.has_value() ? nonterminal : terminal;
 }
 
 void node::choose_state_for_simulation(node_address& current_address, state_tracker& tracker){
@@ -70,7 +77,7 @@ node_address node::get_node_address_by_move(const reasoner::move& m, state_track
 }
 
 bool node::is_terminal(state_tracker& tracker){
-    if(status == unknown){
+    if(status == unknown or status == simulation_ongoing){
         if(tracker.has_any_legal_move())
             status = nonterminal;
         else
