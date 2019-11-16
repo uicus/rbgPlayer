@@ -30,6 +30,7 @@ class state_tracker{
         node& get_node(uint index);
         uint get_current_player(void)const;
         const reasoner::game_state& get_state(void)const;
+        bool has_any_legal_move(void);
 };
 
 #endif

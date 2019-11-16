@@ -68,11 +68,9 @@ prepare:
 	cd $(COMPILER_DIR); make $(COMPILER); cd ..
 
 clean:
-	cd $(COMPILER_DIR); make clean; cd ..
 	rm -rf $(OBJ_DIR)
 	rm -rf $(DEP_DIR)
 	rm -rf $(GEN_DIR)
 
 distclean: clean
-	cd $(COMPILER_DIR); make distclean; cd ..
 	rm -rf $(BIN_DIR)

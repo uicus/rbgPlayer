@@ -2,8 +2,11 @@
 #include"node.hpp"
 #include"edge.hpp"
 #include"constants.hpp"
+#include"moves_container.hpp"
+#include"simulator_turn_handler.hpp"
 #include<algorithm>
 #include<cassert>
+#include<random>
 
 state_tracker::state_tracker(reasoner::resettable_bitarray_stack& cache,
                              std::vector<node>& nodes_register,
@@ -61,4 +64,11 @@ uint state_tracker::get_current_player(void)const{
 
 const reasoner::game_state& state_tracker::get_state(void)const{
     return state;
+}
+
+bool state_tracker::has_any_legal_move(void){
+    assert(state.is_nodal() and state.get_current_player() != KEEPER);
+    std::mt19937 mt(12345);
+    moves_container legal_semimoves;
+    return handle_move(state, cache, legal_semimoves, mt);
 }

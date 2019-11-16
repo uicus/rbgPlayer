@@ -69,7 +69,13 @@ node_address node::get_node_address_by_move(const reasoner::move& m, state_track
 }
 
 bool node::is_terminal(state_tracker& tracker){
-    assert(false); // TODO
+    if(status == unknown){
+        if(tracker.has_any_legal_move())
+            status = nonterminal;
+        else
+            status = terminal;
+    }
+    return status == terminal;
 }
 
 const node_rating& node::get_rating(void)const{
