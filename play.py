@@ -100,9 +100,8 @@ def extract_player_name(game, player_number):
     return get_player_name_from_players_item(player_item)
 
 def write_game_to_file(server_socket):
+    subprocess.run(["make", "clean"]) # to avoid problems with mobile directories dependencies
     game = str(server_socket.receive_message(), "utf-8")
-    if os.path.exists(gen_directory) and os.path.isdir(gen_directory):
-        shutil.rmtree(gen_directory)
     os.makedirs(gen_directory)
     os.makedirs(gen_inc_directory)
     os.makedirs(gen_src_directory)

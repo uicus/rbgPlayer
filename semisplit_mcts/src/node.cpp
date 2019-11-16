@@ -7,6 +7,7 @@
 node node::clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
     node result;
     result.rating = rating;
+    result.status = status;
     if(children){
         result.children = std::vector<edge>();
         std::transform(children->begin(), children->end(), std::back_inserter(*result.children),
