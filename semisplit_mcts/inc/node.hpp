@@ -13,8 +13,14 @@
 class state_tracker;
 
 enum node_status{
-    unknown,
+    unexplored, // is it even possible?
     simulation_ongoing,
+    deadend,
+    nondeadend
+};
+
+enum terminal_status{
+    unknown,
     terminal,
     nonterminal
 };
@@ -22,7 +28,8 @@ enum node_status{
 class node{
         std::optional<std::vector<edge>> children = {};
         node_rating rating = {};
-        node_status status = unknown;
+        node_status status : 2;
+        terminal_status tstatus : 2;
         const node& get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker);
         void choose_state_for_simulation(node_address& current_address, state_tracker& tracker);
         uint children_with_highest_priority(const state_tracker& tracker)const;
@@ -31,7 +38,7 @@ class node{
                                                  uint current_address_position,
                                                  state_tracker& tracker);
     public:
-        node(void)=default;
+        node(void);
         node(const node&)=delete;
         node(node&&)=default;
         node& operator=(const node&)=delete;

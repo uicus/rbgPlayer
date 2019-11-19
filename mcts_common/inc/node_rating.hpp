@@ -19,9 +19,10 @@ class node_rating{
         double average_score(uint player)const;
         priority get_priority(const node_rating& parent_rating, uint parent_player)const;
         bool ever_visited(void)const;
-        bool ever_succeeded_simulation(void)const;
         void apply_simulation_result(const result_container& result);
         void apply_simulation_trial(void);
+        void apply_simulation_fail(void);
+        void apply_simulation_trial_revert(void);
 };
 
 #endif
