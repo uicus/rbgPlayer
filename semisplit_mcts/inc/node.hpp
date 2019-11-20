@@ -37,6 +37,8 @@ class node{
                                                  const node_address& address,
                                                  uint current_address_position,
                                                  state_tracker& tracker);
+        void choose_best_move(reasoner::move& move_so_far, state_tracker& tracker);
+        std::vector<std::tuple<double,uint>> create_list_of_semichildren_for_move(state_tracker& tracker)const;
     public:
         node(void);
         node(const node&)=delete;
@@ -46,7 +48,7 @@ class node{
         ~node(void)=default;
         node clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
         const node& get_node_by_address(const node_address& address, state_tracker& tracker);
-        const reasoner::move& choose_best_move(const state_tracker& tracker);
+        const reasoner::move choose_best_move(state_tracker& tracker);
         node_address choose_state_for_simulation(state_tracker& tracker);
         void apply_simulation_result_for_address(const simulation_result& result, const node_address& address, state_tracker& tracker);
         node_address get_node_address_by_move(const reasoner::move& m, state_tracker& tracker);

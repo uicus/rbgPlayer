@@ -2,6 +2,7 @@
 #define STATE_TRACKER
 
 #include<vector>
+#include<random>
 #include"reasoner.hpp"
 
 class node;
@@ -12,6 +13,12 @@ class state_tracker{
         std::vector<node>& nodes_register;
         reasoner::game_state state;
         bool terminal = false;
+        std::vector<reasoner::semimove> fill_semimoves_table(void);
+        reasoner::revert_information apply_random_semimove_from_given(std::vector<reasoner::semimove>& semimoves,
+                                                                      std::vector<reasoner::semimove>& chosen_semimoves,
+                                                                      std::mt19937& mt);
+        bool apply_random_move_exhaustive(std::vector<reasoner::semimove>& chosen_semimoves,
+                                          std::mt19937& mt);
     public:
         state_tracker(void)=delete;
         state_tracker(const state_tracker&)=delete;
@@ -31,6 +38,7 @@ class state_tracker{
         uint get_current_player(void)const;
         const reasoner::game_state& get_state(void)const;
         bool has_any_legal_move(void);
+        void complement_move(reasoner::move& move_so_far);
 };
 
 #endif

@@ -47,7 +47,7 @@ node_address tree::reparent_along_move(const reasoner::move& m){
     return move_address;
 }
 
-const reasoner::move& tree::choose_best_move(void){
+reasoner::move tree::choose_best_move(void){
     state_tracker tracker(cache, nodes_register, root_state);
     return nodes_register[root_index].choose_best_move(tracker);
 }

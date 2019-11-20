@@ -6,7 +6,6 @@
 #include"simulator_turn_handler.hpp"
 #include<algorithm>
 #include<cassert>
-#include<random>
 
 state_tracker::state_tracker(reasoner::resettable_bitarray_stack& cache,
                              std::vector<node>& nodes_register,
@@ -71,4 +70,46 @@ bool state_tracker::has_any_legal_move(void){
     std::mt19937 mt(12345);
     moves_container legal_semimoves;
     return handle_move(state, cache, legal_semimoves, mt);
+}
+
+std::vector<reasoner::semimove> state_tracker::fill_semimoves_table(void){
+    std::vector<reasoner::semimove> semimoves;
+    state.get_all_semimoves(cache, semimoves, SEMIMOVES_LENGTH);
+    return semimoves;
+}
+
+reasoner::revert_information state_tracker::apply_random_semimove_from_given(std::vector<reasoner::semimove>& semimoves,
+                                                                             std::vector<reasoner::semimove>& chosen_semimoves,
+                                                                             std::mt19937& mt){
+    std::uniform_int_distribution<uint> distribution(0,semimoves.size()-1);
+    uint chosen_semimove = distribution(mt);
+    chosen_semimoves.emplace_back(semimoves[chosen_semimove]);
+    reasoner::revert_information ri = state.apply_semimove_with_revert(semimoves[chosen_semimove]);
+    semimoves[chosen_semimove] = semimoves.back();
+    semimoves.pop_back();
+    return ri;
+}
+
+bool state_tracker::apply_random_move_exhaustive(std::vector<reasoner::semimove>& chosen_semimoves,
+                                                 std::mt19937& mt){
+    auto semimoves = fill_semimoves_table();
+    while(not semimoves.empty()){
+        auto ri = apply_random_semimove_from_given(semimoves, chosen_semimoves, mt);
+        if(state.is_nodal())
+            return true;
+        if(apply_random_move_exhaustive(chosen_semimoves, mt))
+            return true;
+        state.revert(ri);
+    }
+    return false;
+}
+
+void state_tracker::complement_move(reasoner::move& move_so_far){
+    std::vector<reasoner::semimove> chosen_semimoves;
+    std::random_device d;
+    std::mt19937 mt(d());
+    bool move_found = apply_random_move_exhaustive(chosen_semimoves, mt);
+    assert(move_found); // otherwise should not call this from this semistate
+    for(const auto& el: chosen_semimoves)
+        move_so_far.mr.insert(move_so_far.mr.end(), el.get_actions().begin(), el.get_actions().end());
 }

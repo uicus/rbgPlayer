@@ -13,6 +13,7 @@ node node::clone_node(std::vector<node>& new_nodes_register, const state_tracker
     node result;
     result.rating = rating;
     result.status = status;
+    result.tstatus = tstatus;
     if(children){
         result.children = std::vector<edge>();
         std::transform(children->begin(), children->end(), std::back_inserter(*result.children),
@@ -82,8 +83,32 @@ const node& node::get_node_by_address(const node_address& address, state_tracker
     return get_node_by_address(address, 0, tracker);
 }
 
-const reasoner::move& node::choose_best_move(const state_tracker& tracker){
-    assert(false); // TODO
+std::vector<std::tuple<double,uint>> node::create_list_of_semichildren_for_move(state_tracker& tracker)const{
+    std::vector<std::tuple<double, uint>> result;
+    if(children.has_value())
+        for(uint i=0;i<children->size();++i)
+            if((*children)[i].has_target() and (*children)[i].get_target(tracker).status == nondeadend)
+                result.emplace_back((*children)[i].average_score(tracker), i);
+    return result;
+}
+
+void node::choose_best_move(reasoner::move& move_so_far, state_tracker& tracker){
+    auto choices = create_list_of_semichildren_for_move(tracker);
+    if(choices.empty())
+        tracker.complement_move(move_so_far);
+    else{
+        const auto chosen_child = std::get<1>(*std::max_element(choices.begin(), choices.end()));
+        const auto& label = (*children)[chosen_child].get_label();
+        tracker.go_along_semimove(label);
+        move_so_far.mr.insert(move_so_far.mr.end(), label.get_actions().begin(), label.get_actions().end());
+        (*children)[chosen_child].get_target(tracker).choose_best_move(move_so_far, tracker);
+    }
+}
+
+const reasoner::move node::choose_best_move(state_tracker& tracker){
+     reasoner::move move_so_far = {};   
+     choose_best_move(move_so_far, tracker);
+     return move_so_far;
 }
 
 node_address node::choose_state_for_simulation(state_tracker& tracker){

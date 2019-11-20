@@ -32,6 +32,10 @@ node& edge::get_target(state_tracker& tracker){
     return tracker.get_node(*target);
 }
 
+bool edge::has_target(void)const{
+    return target.has_value();
+}
+
 priority edge::get_priority(const node_rating& parent_rating, const state_tracker& tracker)const{
     if(not target)
         return INF;
