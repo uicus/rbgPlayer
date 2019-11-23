@@ -28,11 +28,12 @@ std::vector<edge> state_tracker::generate_children(void){
     if(terminal)
         return std::vector<edge>();
     else{
+        std::uniform_real_distribution<double> random_distribution(-1.0, 1.0);
         std::vector<edge> children;
         std::vector<reasoner::semimove> all_semimoves;
         state.get_all_semimoves(cache, all_semimoves, SEMIMOVES_LENGTH);
         std::transform(all_semimoves.begin(), all_semimoves.end(), std::back_inserter(children),
-            [this](const auto& el){return edge(el);});
+            [this, &random_distribution](const auto& el){return edge(el, random_distribution(random_numbers_generator));});
         terminal = children.empty();
         return children;
     }
@@ -45,12 +46,8 @@ void state_tracker::go_along_semimove(const reasoner::semimove& m){
 }
 
 uint state_tracker::add_node_to_register(void){
-    nodes_register.emplace_back(random_numbers_generator);
+    nodes_register.emplace_back();
     return nodes_register.size()-1;
-}
-
-node state_tracker::create_node(void)const{
-    return node(random_numbers_generator);
 }
 
 const node& state_tracker::get_node(uint index)const{

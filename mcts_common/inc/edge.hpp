@@ -13,6 +13,7 @@ class node_rating;
 class edge{
         label_type label;
         std::optional<uint> target = std::nullopt;
+        double random_score_offset;
     public:
         edge(void)=delete;
         edge(const edge&)=delete;
@@ -20,7 +21,7 @@ class edge{
         edge& operator=(const edge&)=delete;
         edge& operator=(edge&&)=default;
         ~edge(void)=default;
-        edge(const label_type& label);
+        edge(const label_type& label, double offset);
         edge clone_edge(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
         void create_target(state_tracker& tracker);
         node& get_target(state_tracker& tracker);

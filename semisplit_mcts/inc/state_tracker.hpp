@@ -33,7 +33,6 @@ class state_tracker{
         std::vector<edge> generate_children(void);
         void go_along_semimove(const reasoner::semimove& m);
         uint add_node_to_register(void);
-        node create_node(void)const;
         const node& get_node(uint index)const;
         node& get_node(uint index);
         uint get_current_player(void)const;
