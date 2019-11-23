@@ -121,8 +121,32 @@ void node::apply_simulation_result_for_address(const simulation_result& result, 
     apply_simulation_result_for_address(result, address, 0, tracker);
 }
 
+std::tuple<uint, uint> node::get_child_match(const reasoner::move& m, uint current_move_position)const{
+    for(uint i=0;i<children->size();++i){
+        auto match_result = matches((*children)[i].get_label(), m, current_move_position);
+        if(match_result.has_value())
+            return {i, *match_result};
+    }
+    assert(false); // told to move along nonexistant edge -- probably server bug
+}
+
+void node::get_node_address_by_move(const reasoner::move& m, state_tracker& tracker, uint current_move_position, node_address& address_so_far){
+    assert(current_move_position <= m.mr.size());
+    if(m.mr.size() != current_move_position){
+        if(not children)
+            children = tracker.generate_children();
+        auto [chosen_index, new_positon] = get_child_match(m, current_move_position);
+        address_so_far.emplace_back(chosen_index);
+        (*children)[chosen_index].create_target(tracker);
+        tracker.go_along_semimove((*children)[chosen_index].get_label());
+        get_node_address_by_move(m, tracker, new_positon, address_so_far);
+    }
+}
+
 node_address node::get_node_address_by_move(const reasoner::move& m, state_tracker& tracker){
-    assert(false); // TODO
+    node_address address_so_far;
+    get_node_address_by_move(m, tracker, 0, address_so_far);
+    return address_so_far;
 }
 
 bool node::is_terminal(state_tracker& tracker){

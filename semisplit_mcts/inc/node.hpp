@@ -39,6 +39,8 @@ class node{
                                                  state_tracker& tracker);
         void choose_best_move(reasoner::move& move_so_far, state_tracker& tracker);
         std::vector<std::tuple<double,uint>> create_list_of_semichildren_for_move(state_tracker& tracker)const;
+        void get_node_address_by_move(const reasoner::move& m, state_tracker& tracker, uint current_move_position, node_address& address_so_far);
+        std::tuple<uint, uint> get_child_match(const reasoner::move& m, uint current_move_position)const;
     public:
         node(void);
         node(const node&)=delete;
