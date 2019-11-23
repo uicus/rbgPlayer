@@ -29,7 +29,7 @@ tree_handler::tree_handler(const reasoner::game_state& initial_state,
 }
 
 void tree_handler::create_more_requests(){
-    if(t.should_simulate(own_player_index)){
+    if(simulations_count < SIMULATIONS_PER_MOVE and t.should_simulate(own_player_index)){
         uint created_requests_so_far = 0;
         while(requests_to_workers.size() < MIN_REQUESTS_IN_CHANNEL and created_requests_so_far < MAX_NEW_REQUESTS_PER_ITERATION){
             auto&& [address, state] = t.choose_state_for_simulation();
