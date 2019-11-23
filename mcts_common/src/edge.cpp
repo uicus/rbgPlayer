@@ -45,7 +45,7 @@ priority edge::get_priority(const node_rating& parent_rating, const state_tracke
 
 double edge::average_score(const state_tracker& tracker)const{
     if(not target)
-        return 0.0;
+        return UNEXPLORED_SCORE;
     else
         return get_target(tracker).get_rating().average_score(tracker.get_current_player());
 }

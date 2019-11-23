@@ -23,7 +23,7 @@ void tree::create_children(void){
             auto child_state = root_state;
             child_state.apply_move(move);
             go_to_completion(child_state);
-            return node(std::move(child_state), std::move(move));
+            return node(std::move(child_state), std::move(move), random_numbers_generator);
         });
 }
 

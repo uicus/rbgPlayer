@@ -7,9 +7,11 @@
 
 state_tracker::state_tracker(reasoner::resettable_bitarray_stack& cache,
                              std::vector<node>& nodes_register,
+                             std::mt19937& random_numbers_generator,
                              const reasoner::game_state& state)
   : cache(cache)
   , nodes_register(nodes_register)
+  , random_numbers_generator(random_numbers_generator)
   , state(state){}
 
 void state_tracker::go_to_completion(void){
@@ -40,8 +42,12 @@ void state_tracker::go_along_move(const reasoner::move& m){
 }
 
 uint state_tracker::add_node_to_register(void){
-    nodes_register.emplace_back();
+    nodes_register.emplace_back(random_numbers_generator);
     return nodes_register.size()-1;
+}
+
+node state_tracker::create_node(void)const{
+    return node(random_numbers_generator);
 }
 
 const node& state_tracker::get_node(uint index)const{

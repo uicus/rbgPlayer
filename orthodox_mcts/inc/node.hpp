@@ -3,6 +3,7 @@
 
 #include<vector>
 #include<optional>
+#include<random>
 
 #include"types.hpp"
 #include"node_address.hpp"
@@ -14,7 +15,7 @@ class state_tracker;
 
 class node{
         std::optional<std::vector<edge>> children = {};
-        node_rating rating = {};
+        node_rating rating;
         const node& get_node_by_address(const node_address& address, uint current_address_position, state_tracker& tracker);
         void choose_state_for_simulation(node_address& current_address, state_tracker& tracker);
         uint children_with_highest_priority(const state_tracker& tracker)const;
@@ -23,11 +24,12 @@ class node{
                                                  uint current_address_position,
                                                  state_tracker& tracker);
     public:
-        node(void)=default;
+        node(void)=delete;
         node(const node&)=delete;
         node(node&&)=default;
         node& operator=(const node&)=delete;
         node& operator=(node&&)=default;
+        node(std::mt19937& random_numbers_generator);
         ~node(void)=default;
         node clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const;
         const node& get_node_by_address(const node_address& address, state_tracker& tracker);

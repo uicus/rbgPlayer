@@ -2,6 +2,7 @@
 #define TREE
 
 #include<vector>
+#include<random>
 
 #include"reasoner.hpp"
 #include"types.hpp"
@@ -12,6 +13,7 @@ class tree{
         std::vector<node> nodes_register = {};
         uint root_index = 0;
         reasoner::resettable_bitarray_stack cache = {};
+        std::mt19937 random_numbers_generator;
         reasoner::game_state root_state;
         void mitigate_pointers_invalidation_during_expansion(void);
         void mitigate_pointers_invalidation_during_reparentng(std::vector<node>& new_nodes_register)const;

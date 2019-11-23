@@ -2,15 +2,17 @@
 #include"constants.hpp"
 #include<cmath>
 
+node_rating::node_rating(std::mt19937& random_numbers_generator){
+    std::uniform_real_distribution<double> random_distribution(-1.0, 1.0);
+    random_score_offset = random_distribution(random_numbers_generator);
+}
+
 double node_rating::exploration_value(uint parent_simulations)const{
     return EXPLORATION_CONSTANT*sqrt(log(double(parent_simulations))/double(number_of_attempts));
 }
 
 double node_rating::average_score(uint player)const{
-    if(number_of_simulations == 0)
-        return EXPECTED_MAX_SCORE;
-    else
-        return sum_of_scores.get_player_score_divided_by(player, number_of_simulations);
+    return (number_of_simulations == 0 ? UNEXPLORED_SCORE : sum_of_scores.get_player_score_divided_by(player, number_of_simulations)) + random_score_offset;
 }
 
 priority node_rating::get_priority(const node_rating& parent_rating, uint parent_player)const{

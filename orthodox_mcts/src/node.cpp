@@ -4,8 +4,12 @@
 #include"edge.hpp"
 #include<algorithm>
 
+node::node(std::mt19937& random_numbers_generator)
+  : rating(random_numbers_generator){
+}
+
 node node::clone_node(std::vector<node>& new_nodes_register, const state_tracker& tracker)const{
-    node result;
+    node result = tracker.create_node();
     result.rating = rating;
     if(children){
         result.children = std::vector<edge>();
