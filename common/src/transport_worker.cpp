@@ -38,6 +38,10 @@ bool is_move_already_available(concurrent_queue<client_response>& responses_from
     return responses_from_tree.size() > 0;
 }
 
+uint trunctated_subtraction(uint a, uint b){
+    return b > a ? 0 : a-b;
+}
+
 void wait_for_move(uint milisecond_to_wait,
                    concurrent_queue<tree_indication>& tree_indications,
                    concurrent_queue<client_response>& responses_from_tree){
@@ -49,7 +53,7 @@ void wait_for_move(uint milisecond_to_wait,
             return;
         std::chrono::steady_clock::time_point current_time(std::chrono::steady_clock::now());
         uint time_spent = std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count();
-        time_left = time_spent > milisecond_to_wait ? 0 : milisecond_to_wait-time_spent;
+        time_left = trunctated_subtraction(milisecond_to_wait, time_spent);
     }
     tree_indications.emplace_back(tree_indication{move_request{}});
 }
@@ -62,7 +66,7 @@ std::chrono::steady_clock::time_point handle_turn(uint miliseconds_left,
                                                   concurrent_queue<client_response>& responses_from_tree){
     switch(status){
         case own_turn:
-            wait_for_move(miliseconds_left-BUFFER_TIME, tree_indications, responses_from_tree);
+            wait_for_move(trunctated_subtraction(miliseconds_left, BUFFER_TIME), tree_indications, responses_from_tree);
             forward_move_from_player_to_server(oms, responses_from_tree);
             break;
         case opponent_turn:
@@ -82,7 +86,7 @@ uint count_miliseconds_left_for_current_turn(uint standard_wait_time,
 {
     std::chrono::steady_clock::time_point current_time(std::chrono::steady_clock::now());
     uint time_wasted = std::chrono::duration_cast<std::chrono::milliseconds>(current_time-current_turn_start_time).count();
-    return standard_wait_time-time_wasted;
+    return trunctated_subtraction(standard_wait_time, time_wasted);
 }
 }
 
