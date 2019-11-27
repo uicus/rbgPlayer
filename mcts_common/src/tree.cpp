@@ -37,9 +37,10 @@ std::tuple<node_address, reasoner::game_state> tree::choose_state_for_simulation
 
 node_address tree::reparent_along_move(const reasoner::move& m){
     std::vector<node> new_nodes_register;
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    state_tracker address_getter_tracker(cache, nodes_register, random_numbers_generator, root_state);
     mitigate_pointers_invalidation_during_expansion();
-    const auto move_address = nodes_register[root_index].get_node_address_by_move(m, tracker);
+    const auto move_address = nodes_register[root_index].get_node_address_by_move(m, address_getter_tracker);
+    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
     const auto& new_root = nodes_register[root_index].get_node_by_address(move_address, tracker);
     root_state = tracker.get_state();
     mitigate_pointers_invalidation_during_reparentng(new_nodes_register);

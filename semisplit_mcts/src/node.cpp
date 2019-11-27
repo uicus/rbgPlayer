@@ -48,8 +48,12 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
             .get_target(tracker)
             .apply_simulation_result_for_address(result, address, current_address_position+1, tracker);
     if(status == simulation_ongoing and current_address_position == address.size()){
-        status = result.has_value() ? nondeadend : deadend;
-        rating.apply_simulation_fail();
+        if(result.has_value())
+            status = nondeadend;
+        else{
+            status = deadend;
+            rating.apply_simulation_fail();
+        }
     }
 }
 
@@ -94,14 +98,16 @@ std::vector<std::tuple<double,uint>> node::create_list_of_semichildren_for_move(
 
 void node::choose_best_move(reasoner::move& move_so_far, state_tracker& tracker){
     auto choices = create_list_of_semichildren_for_move(tracker);
-    if(choices.empty())
-        tracker.complement_move(move_so_far);
-    else{
-        const auto chosen_child = std::get<1>(*std::max_element(choices.begin(), choices.end()));
-        const auto& label = (*children)[chosen_child].get_label();
-        tracker.go_along_semimove(label);
-        move_so_far.mr.insert(move_so_far.mr.end(), label.get_actions().begin(), label.get_actions().end());
-        (*children)[chosen_child].get_target(tracker).choose_best_move(move_so_far, tracker);
+    if(not tracker.get_state().is_nodal() or move_so_far.mr.empty()){
+        if(choices.empty())
+            tracker.complement_move(move_so_far);
+        else{
+            const auto chosen_child = std::get<1>(*std::max_element(choices.begin(), choices.end()));
+            const auto& label = (*children)[chosen_child].get_label();
+            tracker.go_along_semimove(label);
+            move_so_far.mr.insert(move_so_far.mr.end(), label.get_actions().begin(), label.get_actions().end());
+            (*children)[chosen_child].get_target(tracker).choose_best_move(move_so_far, tracker);
+        }
     }
 }
 
@@ -139,7 +145,9 @@ void node::get_node_address_by_move(const reasoner::move& m, state_tracker& trac
         address_so_far.emplace_back(chosen_index);
         (*children)[chosen_index].create_target(tracker);
         tracker.go_along_semimove((*children)[chosen_index].get_label());
-        get_node_address_by_move(m, tracker, new_positon, address_so_far);
+        (*children)[chosen_index]
+            .get_target(tracker)
+            .get_node_address_by_move(m, tracker, new_positon, address_so_far);
     }
 }
 

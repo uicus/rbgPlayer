@@ -15,7 +15,7 @@ gen_src_directory = gen_directory+"/src"
 game_name = "game"
 game_path = gen_directory+"/"+game_name+".rbg"
 available_players = set(["semisplitFlat", "orthodoxFlat", "orthodoxMcts"])
-semisplit_players = set(["semisplitFlat"])
+semisplit_players = set(["semisplitFlat", "semisplitMcts"])
 
 class BufferedSocket:
     def __init__(self, s):

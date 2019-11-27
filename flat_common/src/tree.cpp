@@ -17,7 +17,7 @@ void tree::go_to_completion(reasoner::game_state& state){
 
 void tree::create_children(void){
     children.clear();
-    auto legal_moves = root_state.get_all_moves(cache);
+    root_state.get_all_moves(cache, legal_moves);
     std::transform(legal_moves.begin(), legal_moves.end(), std::back_inserter(children),
         [this](auto&& move){
             auto child_state = root_state;

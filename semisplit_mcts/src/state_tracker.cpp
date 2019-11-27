@@ -17,7 +17,7 @@ state_tracker::state_tracker(reasoner::resettable_bitarray_stack& cache,
   , state(state){}
 
 void state_tracker::go_to_completion(void){
-    while(state.is_nodal() and state.get_current_player() == KEEPER)
+    while(state.get_current_player() == KEEPER)
         if(not state.apply_any_move(cache)){
             terminal = true;
             break;
@@ -69,7 +69,7 @@ const reasoner::game_state& state_tracker::get_state(void)const{
 }
 
 bool state_tracker::has_any_legal_move(void){
-    assert(state.is_nodal() and state.get_current_player() != KEEPER);
+    assert(state.is_nodal());
     moves_container legal_semimoves;
     return handle_move(state, cache, legal_semimoves, random_numbers_generator);
 }

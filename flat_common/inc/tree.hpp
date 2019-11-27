@@ -14,6 +14,7 @@ class tree{
         reasoner::game_state root_state;
         std::mt19937 random_numbers_generator;
         std::vector<node> children = {};
+        std::vector<reasoner::move> legal_moves;
         reasoner::resettable_bitarray_stack cache = {};
         void go_to_completion(reasoner::game_state& state);
         void create_children(void);
