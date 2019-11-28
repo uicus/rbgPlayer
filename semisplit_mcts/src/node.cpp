@@ -97,8 +97,8 @@ std::vector<std::tuple<double,uint>> node::create_list_of_semichildren_for_move(
 }
 
 void node::choose_best_move(reasoner::move& move_so_far, state_tracker& tracker){
-    auto choices = create_list_of_semichildren_for_move(tracker);
     if(not tracker.get_state().is_nodal() or move_so_far.mr.empty()){
+        auto choices = create_list_of_semichildren_for_move(tracker);
         if(choices.empty())
             tracker.complement_move(move_so_far);
         else{

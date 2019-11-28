@@ -42,7 +42,7 @@ priority edge::get_priority(const node_rating& parent_rating, const state_tracke
     if(not target)
         return INF + random_score_offset;
     else
-        return get_target(tracker).get_rating().get_priority(parent_rating, tracker.get_current_player()) + random_score_offset;
+        return get_target(tracker).get_rating().get_priority(parent_rating, tracker.get_current_player()) + random_score_offset/EXPECTED_MAX_SCORE;
 }
 
 double edge::average_score(const state_tracker& tracker)const{

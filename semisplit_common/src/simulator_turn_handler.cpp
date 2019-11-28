@@ -23,7 +23,7 @@ void fill_semimoves_table(reasoner::game_state& state,
     while(semidepth >= legal_semimoves.size())
         legal_semimoves.emplace_back();
     std::vector<reasoner::semimove>& semimoves = legal_semimoves[semidepth];
-    state.get_all_semimoves(cache, semimoves, SEMIMOVES_LENGTH);
+    state.get_all_semimoves(cache, semimoves, SEMIMOVES_SIMULATIONS_LENGTH);
 }
 
 bool apply_random_move_charge(reasoner::game_state &state,

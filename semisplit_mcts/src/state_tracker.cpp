@@ -31,7 +31,7 @@ std::vector<edge> state_tracker::generate_children(void){
         std::uniform_real_distribution<double> random_distribution(-1.0, 1.0);
         std::vector<edge> children;
         std::vector<reasoner::semimove> all_semimoves;
-        state.get_all_semimoves(cache, all_semimoves, SEMIMOVES_LENGTH);
+        state.get_all_semimoves(cache, all_semimoves, SEMIMOVES_TREE_LENGTH);
         std::transform(all_semimoves.begin(), all_semimoves.end(), std::back_inserter(children),
             [this, &random_distribution](const auto& el){return edge(el, random_distribution(random_numbers_generator));});
         terminal = children.empty();
@@ -76,7 +76,7 @@ bool state_tracker::has_any_legal_move(void){
 
 std::vector<reasoner::semimove> state_tracker::fill_semimoves_table(void){
     std::vector<reasoner::semimove> semimoves;
-    state.get_all_semimoves(cache, semimoves, SEMIMOVES_LENGTH);
+    state.get_all_semimoves(cache, semimoves, SEMIMOVES_TREE_LENGTH);
     return semimoves;
 }
 
