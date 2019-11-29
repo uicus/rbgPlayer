@@ -8,6 +8,7 @@ import queue
 import time
 import argparse
 from argparse import RawTextHelpFormatter
+import signal
 
 gen_directory = "gen"
 gen_inc_directory = gen_directory+"/inc"
@@ -162,6 +163,10 @@ def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
         else:
             print("Silently dropping reset event...")
 
+def cleanup_process(player_process):
+    print("Killing player process...")
+    player_process.terminate()
+
 parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
 parser.add_argument('player_kind', metavar='player-kind', type=str, choices=available_players, help='kind of player backend (available: '+', '.join(available_players)+')')
 parser.add_argument('player_port', metavar='player-port', type=int, help='port number of internal player backend')
@@ -199,6 +204,7 @@ client_to_server.daemon = True
 server_to_client.daemon = True
 client_to_server.start()
 server_to_client.start()
+signal.signal(signal.SIGTERM, lambda _1,_2: cleanup_process(player_process))
 client_to_server.join()
 server_to_client.join()
 player_process.terminate()
