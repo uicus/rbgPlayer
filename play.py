@@ -51,10 +51,10 @@ class BufferedSocket:
         self.working_socket.shutdown(socket.SHUT_RDWR)
 
 class PlayerConfig:
-    def __init__(self, program_args, player_name):
+    def __init__(self, program_args, player_name, player_port):
         self.player_kind = program_args.player_kind
         self.address_to_connect = "127.0.0.1"
-        self.port_to_connect = program_args.player_port
+        self.port_to_connect = player_port
         self.number_of_threads = program_args.number_of_threads
         self.miliseconds_per_move = program_args.miliseconds_per_move
         self.simulations_limit = program_args.simulations_limit
@@ -130,10 +130,11 @@ def connect_to_server(server_address, server_port):
     server_socket.connect((server_address, server_port))
     return server_socket
 
-def wait_for_player_connection(player_address, player_port, return_value_queue):
+def wait_for_player_connection(player_address, return_value_queue):
     accept_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     accept_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    accept_socket.bind((player_address, player_port))
+    accept_socket.bind((player_address, 0))
+    return_value_queue.put(accept_socket.getsockname()[1])
     accept_socket.listen(1)
     player_socket, _ = accept_socket.accept()
     return_value_queue.put(player_socket)
@@ -141,13 +142,16 @@ def wait_for_player_connection(player_address, player_port, return_value_queue):
 def start_player(player_config):
     return subprocess.Popen(player_config.runnable_list())
 
-def start_and_connect_player(player_address, player_port, player_config):
-    return_value_queue = queue.Queue()
-    player_connection_wait = Thread(target = wait_for_player_connection, args = (player_address, player_port, return_value_queue))
-    player_connection_wait.start()
+def start_and_connect_player(player_address, player_config, return_value_queue, player_connection_wait):
     player_process = start_player(player_config)
     player_connection_wait.join()
     return BufferedSocket(return_value_queue.get()), player_process
+
+def start_player_listener(player_address):
+    return_value_queue = queue.Queue()
+    player_connection_wait = Thread(target = wait_for_player_connection, args = (player_address, return_value_queue))
+    player_connection_wait.start()
+    return return_value_queue.get(), return_value_queue, player_connection_wait
 
 def forward_and_log(source_socket, target_socket, log_begin, log_end, role):
     while True:
@@ -169,7 +173,6 @@ def cleanup_process(player_process):
 
 parser = argparse.ArgumentParser(description='Setup and start rbg player.', formatter_class=RawTextHelpFormatter)
 parser.add_argument('player_kind', metavar='player-kind', type=str, choices=available_players, help='kind of player backend (available: '+', '.join(available_players)+')')
-parser.add_argument('player_port', metavar='player-port', type=int, help='port number of internal player backend')
 parser.add_argument('server_address', metavar='server-address', type=str, help='ip address of game manager')
 parser.add_argument('server_port', metavar='server-port', type=int, help='port number of game manager')
 parser.add_argument('--number-of-threads', dest='number_of_threads', type=int, default=2, help='number of player and makefile threads (default: 2)\nnote that player always consist of at least two worker threads: tree manager and simulator')
@@ -188,15 +191,16 @@ print("Game rules written to:",game_path)
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
-player_config = PlayerConfig(program_args, player_name)
+player_port, listener_queue, listener_thread = start_player_listener("localhost")
+player_config = PlayerConfig(program_args, player_name, player_port)
 player_config.print_config_file("config.hpp")
 
 compile_player(program_args.number_of_threads, program_args.player_kind)
 print("Player compiled!")
 time.sleep(1.) # to give other players time to end compilation
 
-player_socket, player_process = start_and_connect_player("localhost", program_args.player_port, player_config)
-print("Player started!")
+player_socket, player_process = start_and_connect_player("localhost", player_config, listener_queue, listener_thread)
+print("Player started on port",player_port)
 
 server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))
 client_to_server = Thread(target = forward_and_log, args = (player_socket, server_socket, "Client says-->","<--","client"))
