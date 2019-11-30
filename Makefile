@@ -1,16 +1,17 @@
 SUFFIXES += .d
 NODEPS := clean distclean prepare
 
+PLAYER_ID := 99999
 TARGET := rbgPlayer
 COMPILER_DIR := rbg2cpp
 COMPILER_BIN_DIR := bin
 COMPILER := rbg2cpp
 SRC_DIR := src
 INC_DIR := inc
-OBJ_DIR := obj
-BIN_DIR := bin
-DEP_DIR := dep
-GEN_DIR := gen
+OBJ_DIR := obj_$(PLAYER_ID)
+BIN_DIR := bin_$(PLAYER_ID)
+DEP_DIR := dep_$(PLAYER_ID)
+GEN_DIR := gen_$(PLAYER_ID)
 COMMON := common
 MCTS_COMMON := mcts_common
 FLAT_COMMON := flat_common
@@ -19,7 +20,6 @@ ORTHODOX_MCTS := orthodox_mcts
 SEMISPLIT_COMMON := semisplit_common
 SEMISPLIT_FLAT := semisplit_flat
 SEMISPLIT_MCTS := semisplit_mcts
-REASONER := reasoner
 
 C := g++
 COMMON_CFLAGS = -Wall -Wextra -Wpedantic -Ofast -march=native -flto -std=c++17 -pthread -s
@@ -68,9 +68,9 @@ prepare:
 	cd $(COMPILER_DIR); make $(COMPILER); cd ..
 
 clean:
-	rm -rf $(OBJ_DIR)
-	rm -rf $(DEP_DIR)
-	rm -rf $(GEN_DIR)
+	rm -rf obj*
+	rm -rf dep*
+	rm -rf gen*
 
 distclean: clean
-	rm -rf $(BIN_DIR)
+	rm -rf bin*

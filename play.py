@@ -10,11 +10,15 @@ import argparse
 from argparse import RawTextHelpFormatter
 import signal
 
-gen_directory = "gen"
-gen_inc_directory = gen_directory+"/inc"
-gen_src_directory = gen_directory+"/src"
+def gen_directory(player_id):
+    return "gen_"+str(player_id)
+def gen_inc_directory(player_id):
+    return gen_directory(player_id)+"/inc"
+def gen_src_directory(player_id):
+    return gen_directory(player_id)+"/src"
 game_name = "game"
-game_path = gen_directory+"/"+game_name+".rbg"
+def game_path(player_id):
+    return gen_directory(player_id)+"/"+game_name+".rbg"
 available_players = set(["semisplitFlat", "semisplitMcts", "orthodoxFlat", "orthodoxMcts"])
 semisplit_players = set(["semisplitFlat", "semisplitMcts"])
 
@@ -50,6 +54,15 @@ class BufferedSocket:
     def shutdown(self):
         self.working_socket.shutdown(socket.SHUT_RDWR)
 
+class Cd:
+    def __init__(self, new_path):
+        self.new_path = os.path.expanduser(new_path)
+    def __enter__(self):
+        self.saved_path = os.getcwd()
+        os.chdir(self.new_path)
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.saved_path)
+
 class PlayerConfig:
     def __init__(self, program_args, player_name, player_port):
         self.player_kind = program_args.player_kind
@@ -62,9 +75,9 @@ class PlayerConfig:
         self.semimoves_tree_length = program_args.semimoves_tree_length
         self.player_name = player_name
     def runnable_list(self):
-        return ["bin/"+self.player_kind]
+        return ["bin_"+str(self.port_to_connect)+"/"+self.player_kind]
     def print_config_file(self, name):
-        with open(gen_inc_directory+"/"+name,"w") as config_file:
+        with open(gen_inc_directory(self.port_to_connect)+"/"+name,"w") as config_file:
             config_file.write("#ifndef CONFIG\n")
             config_file.write("#define CONFIG\n")
             config_file.write("\n")
@@ -102,13 +115,14 @@ def extract_player_name(game, player_number):
     player_item = get_comma_separated_item(players_section, player_number-1)
     return get_player_name_from_players_item(player_item)
 
-def write_game_to_file(server_socket):
-    subprocess.run(["make", "clean"]) # to avoid problems with mobile directories dependencies
+def write_game_to_file(server_socket, player_id):
+    subprocess.run(["make", "distclean"]) # to avoid problems with mobile directories dependencies
     game = str(server_socket.receive_message(), "utf-8")
-    os.makedirs(gen_directory)
-    os.makedirs(gen_inc_directory)
-    os.makedirs(gen_src_directory)
-    with open(game_path, 'w') as out:
+    time.sleep(1.) # not to mess with other players' make clean invocations
+    os.makedirs(gen_directory(player_id))
+    os.makedirs(gen_inc_directory(player_id))
+    os.makedirs(gen_src_directory(player_id))
+    with open(game_path(player_id), 'w') as out:
         out.write(game + "\n")
     return game
 
@@ -116,14 +130,15 @@ def receive_player_name(server_socket, game):
     player_number = int(str(server_socket.receive_message(), "utf-8"))
     return extract_player_name(game, player_number)
 
-def compile_player(num_of_threads, player_kind):
-    if player_kind in semisplit_players:
-        subprocess.run(["rbg2cpp/bin/rbg2cpp", "-fsemi-split", "-o", "reasoner", game_path]) # assume description is correct
-    else:
-        subprocess.run(["rbg2cpp/bin/rbg2cpp", "-o", "reasoner", game_path]) # assume description is correct
-    shutil.move("reasoner.cpp", gen_src_directory+"/reasoner.cpp")
-    shutil.move("reasoner.hpp", gen_inc_directory+"/reasoner.hpp")
-    subprocess.run(["make", "-j"+str(num_of_threads), player_kind]) # again, assume everything is ok
+def compile_player(num_of_threads, player_kind, player_id):
+    with Cd(gen_directory(player_id)):
+        if player_kind in semisplit_players:
+            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fsemi-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
+        else:
+            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
+    shutil.move(gen_directory(player_id)+"/reasoner.cpp", gen_src_directory(player_id)+"/reasoner.cpp")
+    shutil.move(gen_directory(player_id)+"/reasoner.hpp", gen_inc_directory(player_id)+"/reasoner.hpp")
+    subprocess.run(["make", "-j"+str(num_of_threads), player_kind, "PLAYER_ID="+str(player_id)]) # again, assume everything is ok
 
 def connect_to_server(server_address, server_port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -185,17 +200,18 @@ program_args = parser.parse_args()
 server_socket = BufferedSocket(connect_to_server(program_args.server_address, program_args.server_port))
 print("Successfully connected to server!")
 
-game = write_game_to_file(server_socket)
-print("Game rules written to:",game_path)
+player_port, listener_queue, listener_thread = start_player_listener("localhost")
+
+game = write_game_to_file(server_socket, player_port)
+print("Game rules written to:",game_path(player_port))
 
 player_name = receive_player_name(server_socket, game)
 print("Received player name:",player_name)
 
-player_port, listener_queue, listener_thread = start_player_listener("localhost")
 player_config = PlayerConfig(program_args, player_name, player_port)
 player_config.print_config_file("config.hpp")
 
-compile_player(program_args.number_of_threads, program_args.player_kind)
+compile_player(program_args.number_of_threads, program_args.player_kind, player_port)
 print("Player compiled!")
 time.sleep(1.) # to give other players time to end compilation
 
