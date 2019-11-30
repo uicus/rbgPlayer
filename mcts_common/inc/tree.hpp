@@ -8,8 +8,10 @@
 #include"types.hpp"
 #include"node.hpp"
 #include"simulation_result.hpp"
+#include"label_type.hpp"
 
 class tree{
+        std::vector<label_type> children_label_container = {};
         std::vector<node> nodes_register = {};
         uint root_index = 0;
         reasoner::resettable_bitarray_stack cache = {};
@@ -17,6 +19,7 @@ class tree{
         reasoner::game_state root_state;
         void mitigate_pointers_invalidation_during_expansion(void);
         void mitigate_pointers_invalidation_during_reparentng(std::vector<node>& new_nodes_register)const;
+        state_tracker create_tracker(void);
     public:
         tree(void)=delete;
         tree(const tree&)=delete;

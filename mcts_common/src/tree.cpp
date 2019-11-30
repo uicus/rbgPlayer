@@ -8,7 +8,7 @@ tree::tree(const reasoner::game_state& initial_state)
   , root_state(initial_state){
     std::random_device d;
     random_numbers_generator.seed(d());
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     tracker.go_to_completion();
     root_state = tracker.get_state();
     root_index = tracker.add_node_to_register();
@@ -23,24 +23,28 @@ void tree::mitigate_pointers_invalidation_during_reparentng(std::vector<node>& n
     new_nodes_register.reserve(nodes_register.capacity());
 }
 
+state_tracker tree::create_tracker(void){
+    return state_tracker(cache, children_label_container, nodes_register, random_numbers_generator, root_state);
+}
+
 void tree::apply_simulation_result(const node_address& address, const simulation_result& result){
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     nodes_register[root_index].apply_simulation_result_for_address(result, address, tracker);
 }
 
 std::tuple<node_address, reasoner::game_state> tree::choose_state_for_simulation(void){
     mitigate_pointers_invalidation_during_expansion();
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     auto address = nodes_register[root_index].choose_state_for_simulation(tracker);
     return {std::move(address), tracker.get_state()};
 }
 
 node_address tree::reparent_along_move(const reasoner::move& m){
     std::vector<node> new_nodes_register;
-    state_tracker address_getter_tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto address_getter_tracker = create_tracker();
     mitigate_pointers_invalidation_during_expansion();
     const auto move_address = nodes_register[root_index].get_node_address_by_move(m, address_getter_tracker);
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     const auto& new_root = nodes_register[root_index].get_node_by_address(move_address, tracker);
     root_state = tracker.get_state();
     mitigate_pointers_invalidation_during_reparentng(new_nodes_register);
@@ -52,12 +56,12 @@ node_address tree::reparent_along_move(const reasoner::move& m){
 }
 
 reasoner::move tree::choose_best_move(void){
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     return nodes_register[root_index].choose_best_move(tracker);
 }
 
 game_status_indication tree::get_status(uint own_index){
-    state_tracker tracker(cache, nodes_register, random_numbers_generator, root_state);
+    auto tracker = create_tracker();
     if(nodes_register[root_index].is_terminal(tracker))
         return end_game;
     else if(uint(root_state.get_current_player())-1 == own_index)

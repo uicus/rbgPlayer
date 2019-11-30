@@ -4,12 +4,14 @@
 #include<vector>
 #include<random>
 #include"reasoner.hpp"
+#include"label_type.hpp"
 
 class node;
 class edge;
 
 class state_tracker{
         reasoner::resettable_bitarray_stack& cache;
+        std::vector<label_type>& children_label_container;
         std::vector<node>& nodes_register;
         std::mt19937& random_numbers_generator;
         reasoner::game_state state;
@@ -22,6 +24,7 @@ class state_tracker{
         state_tracker& operator=(state_tracker&&)=default;
         ~state_tracker(void)=default;
         state_tracker(reasoner::resettable_bitarray_stack& cache,
+                      std::vector<label_type>& children_label_container,
                       std::vector<node>& nodes_register,
                       std::mt19937& random_numbers_generator,
                       const reasoner::game_state& state);
