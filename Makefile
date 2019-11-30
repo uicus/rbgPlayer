@@ -37,23 +37,23 @@ $(1)_INCLUDE := $$(foreach dir,$$($(1)_DIRS),-I$$(wildcard $$(dir)/$(INC_DIR)))
 $(1)_CFLAGS := $(COMMON_CFLAGS) $$($(1)_INCLUDE)
 $(1)_OBJECTS := $$(foreach dir,$$($(1)_DIRS),$$(patsubst $$(dir)/$(SRC_DIR)/%.cpp, $(OBJ_DIR)/$(2)/%.o, $$(wildcard $$(dir)/$(SRC_DIR)/*.cpp)))
 $$(foreach dir,$$($(1)_DIRS),$$(eval $$(call OBJECT_RULES,$(2),$$($(1)_CFLAGS),$$(dir))))
-DEPFILES := $(DEPFILES) $$(foreach dir,$$($(1)_DIRS),$$(patsubst $$(dir)/$(SRC_DIR)/%.cpp, $(DEP_DIR)/$(2)/%.d, $$(wildcard $$(dir)/$(SRC_DIR)/*.cpp)))
+$(1)_DEP := $$(foreach dir,$$($(1)_DIRS),$$(patsubst $$(dir)/$(SRC_DIR)/%.cpp, $(DEP_DIR)/$(2)/%.d, $$(wildcard $$(dir)/$(SRC_DIR)/*.cpp)))
+DEPFILES := $(DEPFILES) $$($(1)_DEP)
 $(OBJ_DIR)/$(2): | $(OBJ_DIR)
 	mkdir -p $(OBJ_DIR)/$(2)
 $(DEP_DIR)/$(2): | $(DEP_DIR)
 	mkdir -p $(DEP_DIR)/$(2)
 $(2): $$($(1)_OBJECTS) | $(BIN_DIR)
 	$(C) $$($(1)_CFLAGS) $$($(1)_OBJECTS) -o $(BIN_DIR)/$$@
+ifeq (1, $$(words $$(findstring $(MAKECMDGOALS), $(2))))
+    -include $$($(1)_DEP)
+endif
 endef
 
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_MCTS,orthodoxMcts,$(ORTHODOX_MCTS) $(ORTHODOX_COMMON) $(COMMON) $(MCTS_COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,ORTHODOX_FLAT,orthodoxFlat,$(FLAT_COMMON) $(ORTHODOX_COMMON) $(COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,SEMISPLIT_FLAT,semisplitFlat,$(FLAT_COMMON) $(SEMISPLIT_COMMON) $(SEMISPLIT_FLAT) $(COMMON) $(GEN_DIR)))
 $(eval $(call PLAYER_KIND_RULES,SEMISPLIT_MCTS,semisplitMcts,$(SEMISPLIT_COMMON) $(SEMISPLIT_MCTS) $(COMMON) $(MCTS_COMMON) $(GEN_DIR)))
-
-ifeq (0, $(words $(findstring $(MAKECMDGOALS), $(NODEPS))))
-    -include $(DEPFILES)
-endif
 
 $(DEP_DIR):
 	mkdir -p $(DEP_DIR)

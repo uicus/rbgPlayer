@@ -26,33 +26,6 @@ void fill_semimoves_table(reasoner::game_state& state,
     state.get_all_semimoves(cache, semimoves, SEMIMOVES_SIMULATIONS_LENGTH);
 }
 
-bool apply_random_move_charge(reasoner::game_state &state,
-                              uint semidepth,
-                              moves_container& legal_semimoves,
-                              reasoner::resettable_bitarray_stack& cache,
-                              std::mt19937& mt){
-    fill_semimoves_table(state, semidepth, legal_semimoves, cache);
-    if(legal_semimoves[semidepth].empty())
-        return false;
-    auto ri = apply_random_semimove_from_given(state, legal_semimoves[semidepth], mt);
-    if(state.is_nodal())
-        return true;
-    if(apply_random_move_charge(state, semidepth+1, legal_semimoves, cache, mt))
-        return true;
-    state.revert(ri);
-    return false;
-}
-
-bool apply_random_charge(reasoner::game_state& state,
-                         moves_container& legal_semimoves,
-                         reasoner::resettable_bitarray_stack& cache,
-                         std::mt19937& mt){
-    for (uint i=0; i<CHARGES; ++i)
-        if(apply_random_move_charge(state, 0, legal_semimoves, cache, mt))
-            return true;
-    return false;
-}
-
 bool apply_random_move_exhaustive(reasoner::game_state &state,
                                   uint semidepth,
                                   moves_container& legal_semimoves,
@@ -70,19 +43,11 @@ bool apply_random_move_exhaustive(reasoner::game_state &state,
     return false;
 }
 
-bool apply_random_exhaustive(reasoner::game_state &state,
-                             moves_container& legal_semimoves,
-                             reasoner::resettable_bitarray_stack& cache,
-                             std::mt19937& mt){
-    return apply_random_move_exhaustive(state, 0, legal_semimoves, cache, mt);
-}
-
 bool handle_player_move(reasoner::game_state &state,
                         reasoner::resettable_bitarray_stack& cache,
                         moves_container& legal_semimoves,
                         std::mt19937& mt){
-    return apply_random_charge(state, legal_semimoves, cache, mt)
-        or apply_random_exhaustive(state, legal_semimoves, cache, mt);
+    return apply_random_move_exhaustive(state, 0, legal_semimoves, cache, mt);
 }
 }
 
