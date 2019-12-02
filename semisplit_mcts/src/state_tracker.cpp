@@ -101,6 +101,7 @@ bool state_tracker::apply_random_move_exhaustive(std::vector<reasoner::semimove>
         if(apply_random_move_exhaustive(chosen_semimoves))
             return true;
         state.revert(ri);
+        chosen_semimoves.pop_back();
     }
     return false;
 }
