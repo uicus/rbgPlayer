@@ -24,12 +24,14 @@ class tree_handler{
         uint own_player_index;
         tree_history history;
         uint simulations_count = 0;
+        bool should_perform_move = false;
         concurrent_queue<simulation_request>& requests_to_workers;
         concurrent_queue<client_response>& responses_to_server;
         void create_more_requests(void);
         bool address_still_usable(const simulation_response& response)const;
         node_address extract_usable_address(const simulation_response& response)const;
         void handle_simulations_counter(void);
+        void handle_status(void);
     public:
         tree_handler(void)=delete;
         tree_handler(const tree_handler&)=delete;

@@ -40,7 +40,7 @@ void tree_handler::create_more_requests(){
 }
 
 void tree_handler::handle_simulations_counter(void){
-    if(++simulations_count >= SIMULATIONS_PER_MOVE)
+    if(++simulations_count >= SIMULATIONS_PER_MOVE and should_perform_move)
         handle_move_request();
 }
 
@@ -56,6 +56,12 @@ void tree_handler::handle_simulation_response(const simulation_response& respons
     create_more_requests();
 }
 
+void tree_handler::handle_status(void){
+    auto status = t.get_status(own_player_index);
+    should_perform_move = status == own_turn;
+    responses_to_server.emplace_back(client_response{status});
+}
+
 void tree_handler::handle_move_request(void){
     const auto& chosen_move = t.choose_best_move();
     responses_to_server.emplace_back(client_response{chosen_move});
@@ -66,7 +72,7 @@ void tree_handler::handle_move_request(void){
 void tree_handler::handle_move_indication(const reasoner::move& m){
     simulations_count = 0;
     history.notify_about_move(t.reparent_along_move(m));
-    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
+    handle_status();
     create_more_requests();
 }
 
@@ -75,6 +81,6 @@ void tree_handler::handle_reset_request(const reasoner::game_state& initial_stat
     t = initial_state;
     simulations_count = 0;
     history = {};
-    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
+    handle_status();
     create_more_requests();
 }

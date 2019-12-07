@@ -42,8 +42,15 @@ std::vector<edge> state_tracker::generate_children(void){
 
 void state_tracker::go_along_semimove(const reasoner::semimove& m){
     terminal = false;
-    state.apply_semimove(m);
+    semimove_reverts.emplace_back(state.apply_semimove_with_revert(m));
     go_to_completion();
+    if(state.is_nodal())
+        semimove_reverts.clear();
+}
+
+void state_tracker::revert_last_semimove(void){
+    state.revert(semimove_reverts.back());
+    semimove_reverts.pop_back();
 }
 
 uint state_tracker::add_node_to_register(void){

@@ -16,6 +16,7 @@ class state_tracker{
         std::mt19937& random_numbers_generator;
         reasoner::game_state state;
         bool terminal = false;
+        std::vector<reasoner::revert_information> semimove_reverts = {}; // TODO: take from semiglobal variable in tree
         std::vector<reasoner::semimove> fill_semimoves_table(void);
         reasoner::revert_information apply_random_semimove_from_given(std::vector<reasoner::semimove>& semimoves,
                                                                       std::vector<reasoner::semimove>& chosen_semimoves);
@@ -35,6 +36,7 @@ class state_tracker{
         void go_to_completion(void);
         std::vector<edge> generate_children(void);
         void go_along_semimove(const reasoner::semimove& m);
+        void revert_last_semimove(void);
         uint add_node_to_register(void);
         const node& get_node(uint index)const;
         node& get_node(uint index);
