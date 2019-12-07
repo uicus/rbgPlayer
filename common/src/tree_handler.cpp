@@ -24,7 +24,7 @@ tree_handler::tree_handler(const reasoner::game_state& initial_state,
   , history()
   , requests_to_workers(requests_to_workers)
   , responses_to_server(responses_to_server){
-    responses_to_server.emplace_back(client_response{t.get_status(own_player_index)});
+    handle_status();
     create_more_requests();
 }
 
