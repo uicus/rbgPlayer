@@ -57,7 +57,59 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
     }
 }
 
-void node::choose_state_for_simulation(node_address& current_address, state_tracker& tracker){
+std::vector<uint> node::get_children_sorted_by_priorities(state_tracker& tracker){
+    std::vector<std::tuple<priority, uint>> candidates;
+    for(uint i=0;i<children->size();++i)
+        candidates.emplace_back((*children)[i].get_priority(rating, tracker), i);
+    std::sort(candidates.begin(), candidates.end(), std::greater<std::tuple<priority, uint>>());
+    std::vector<uint> result;
+    std::transform(candidates.begin(), candidates.end(), result.end(),
+        [](const auto& el){return std::get<1>(el);});
+    return result;
+}
+
+bool node::choose_nodal_state_for_simulation(node_address& current_address, state_tracker& tracker){
+    if(status == deadend)
+        return false;
+    if(tracker.get_state().is_nodal() and not rating.ever_visited()){
+        if(status == unexplored)
+            status = simulation_ongoing;
+        rating.apply_simulation_trial();
+        return true;
+    }
+    else{
+        if(not children)
+            children = tracker.generate_children();
+        auto priorities = get_children_sorted_by_priorities(tracker);
+        for(const auto el: priorities){
+            (*children)[el].create_target(tracker);
+            current_address.push_back(el);
+            tracker.go_along_semimove((*children)[el].get_label());
+            bool search_result = (*children)[el]
+                .get_target(tracker)
+                .choose_nodal_state_for_simulation(current_address, tracker);
+            if(search_result){
+                rating.apply_simulation_trial();
+                return true;
+            }
+            else{
+                current_address.pop_back();
+                tracker.revert_last_semimove();
+            }
+        }
+        if(tracker.get_state().is_nodal()){
+            rating.apply_simulation_trial();
+            return true;
+        }
+        else{
+            status = deadend;
+            rating.apply_simulation_fail();
+            return false;
+        }
+    }
+}
+
+void node::choose_unexplored_state_for_simulation(node_address& current_address, state_tracker& tracker){
     if(rating.ever_visited()){
         if(not children)
             children = tracker.generate_children();
@@ -68,7 +120,7 @@ void node::choose_state_for_simulation(node_address& current_address, state_trac
             tracker.go_along_semimove((*children)[choice].get_label());
             (*children)[choice]
                 .get_target(tracker)
-                .choose_state_for_simulation(current_address, tracker);
+                .choose_unexplored_state_for_simulation(current_address, tracker);
         }
     }
     else if(status == unexplored)
@@ -112,14 +164,14 @@ void node::choose_best_move(reasoner::move& move_so_far, state_tracker& tracker)
 }
 
 const reasoner::move node::choose_best_move(state_tracker& tracker){
-     reasoner::move move_so_far = {};   
+     reasoner::move move_so_far = {};
      choose_best_move(move_so_far, tracker);
      return move_so_far;
 }
 
 node_address node::choose_state_for_simulation(state_tracker& tracker){
     node_address result;
-    choose_state_for_simulation(result, tracker);
+    choose_unexplored_state_for_simulation(result, tracker);
     return result;
 }
 

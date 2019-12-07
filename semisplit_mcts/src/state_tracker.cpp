@@ -49,6 +49,7 @@ void state_tracker::go_along_semimove(const reasoner::semimove& m){
 }
 
 void state_tracker::revert_last_semimove(void){
+    assert(not semimove_reverts.empty());
     state.revert(semimove_reverts.back());
     semimove_reverts.pop_back();
 }
