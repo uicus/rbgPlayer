@@ -62,8 +62,8 @@ std::vector<uint> node::get_children_sorted_by_priorities(state_tracker& tracker
     for(uint i=0;i<children->size();++i)
         candidates.emplace_back((*children)[i].get_priority(rating, tracker), i);
     std::sort(candidates.begin(), candidates.end(), std::greater<std::tuple<priority, uint>>());
-    std::vector<uint> result;
-    std::transform(candidates.begin(), candidates.end(), result.end(),
+    std::vector<uint> result(candidates.size());
+    std::transform(candidates.begin(), candidates.end(), result.begin(),
         [](const auto& el){return std::get<1>(el);});
     return result;
 }
@@ -71,7 +71,7 @@ std::vector<uint> node::get_children_sorted_by_priorities(state_tracker& tracker
 bool node::choose_nodal_state_for_simulation(node_address& current_address, state_tracker& tracker){
     if(status == deadend)
         return false;
-    if(tracker.get_state().is_nodal() and not rating.ever_visited()){
+    if(not current_address.empty() and tracker.get_state().is_nodal() and not rating.ever_visited()){
         if(status == unexplored)
             status = simulation_ongoing;
         rating.apply_simulation_trial();
@@ -171,7 +171,10 @@ const reasoner::move node::choose_best_move(state_tracker& tracker){
 
 node_address node::choose_state_for_simulation(state_tracker& tracker){
     node_address result;
-    choose_unexplored_state_for_simulation(result, tracker);
+    if constexpr(SHOULD_REACH_NODAL_STATES == true)
+        choose_nodal_state_for_simulation(result, tracker);
+    else
+        choose_unexplored_state_for_simulation(result, tracker);
     return result;
 }
 

@@ -19,8 +19,14 @@ def gen_src_directory(player_id):
 game_name = "game"
 def game_path(player_id):
     return gen_directory(player_id)+"/"+game_name+".rbg"
-available_players = set(["semisplitFlat", "semisplitMcts", "orthodoxFlat", "orthodoxMcts"])
-semisplit_players = set(["semisplitFlat", "semisplitMcts"])
+available_players = set(["semisplitFlat", "semisplitMcts", "semisplitNodalMcts", "orthodoxFlat", "orthodoxMcts"])
+semisplit_players = set(["semisplitFlat", "semisplitMcts", "semisplitNodalMcts"])
+
+def player_kind_to_make_target(player_kind):
+    if player_kind == "semisplitNodalMcts":
+        return "semisplitMcts"
+    else:
+        return player_kind
 
 class BufferedSocket:
     def __init__(self, s):
@@ -75,7 +81,7 @@ class PlayerConfig:
         self.semimoves_tree_length = program_args.semimoves_tree_length
         self.player_name = player_name
     def runnable_list(self):
-        return ["bin_"+str(self.port_to_connect)+"/"+self.player_kind]
+        return ["bin_"+str(self.port_to_connect)+"/"+player_kind_to_make_target(self.player_kind)]
     def print_config_file(self, name):
         with open(gen_inc_directory(self.port_to_connect)+"/"+name,"w") as config_file:
             config_file.write("#ifndef CONFIG\n")
@@ -92,6 +98,7 @@ class PlayerConfig:
             config_file.write("constexpr uint SEMIMOVES_SIMULATIONS_LENGTH = "+str(self.semimoves_simulations_length)+";\n")
             config_file.write("constexpr uint SEMIMOVES_TREE_LENGTH = "+str(self.semimoves_tree_length)+";\n")
             config_file.write("const std::string NAME = \""+self.player_name+"\";\n")
+            config_file.write("constexpr bool SHOULD_REACH_NODAL_STATES = "+("true" if program_args.player_kind=="semisplitNodalMcts" else "false")+";\n")
             config_file.write("\n")
             config_file.write("#endif\n")
 
@@ -138,7 +145,7 @@ def compile_player(num_of_threads, player_kind, player_id):
             subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
     shutil.move(gen_directory(player_id)+"/reasoner.cpp", gen_src_directory(player_id)+"/reasoner.cpp")
     shutil.move(gen_directory(player_id)+"/reasoner.hpp", gen_inc_directory(player_id)+"/reasoner.hpp")
-    subprocess.run(["make", "-j"+str(num_of_threads), player_kind, "PLAYER_ID="+str(player_id)]) # again, assume everything is ok
+    subprocess.run(["make", "-j"+str(num_of_threads), player_kind_to_make_target(player_kind), "PLAYER_ID="+str(player_id)]) # again, assume everything is ok
 
 def connect_to_server(server_address, server_port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
