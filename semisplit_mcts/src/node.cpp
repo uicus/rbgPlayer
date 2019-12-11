@@ -72,9 +72,8 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
     if(status == deadend)
         return false;
     if(not current_address.empty() and tracker.get_state().is_nodal() and not rating.ever_visited()){
-        if(status == unexplored)
-            status = simulation_ongoing;
         rating.apply_simulation_trial();
+        status = nondeadend;
         return true;
     }
     else{
@@ -90,6 +89,7 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
                 .choose_nodal_state_for_simulation(current_address, tracker);
             if(search_result){
                 rating.apply_simulation_trial();
+                status = nondeadend;
                 return true;
             }
             else{
@@ -99,6 +99,7 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
         }
         if(tracker.get_state().is_nodal()){
             rating.apply_simulation_trial();
+            status = nondeadend;
             return true;
         }
         else{
