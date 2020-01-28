@@ -57,15 +57,16 @@ void node::apply_simulation_result_for_address(const simulation_result& result,
     }
 }
 
-std::vector<uint> node::get_children_sorted_by_priorities(state_tracker& tracker){
-    std::vector<std::tuple<priority, uint>> candidates;
-    for(uint i=0;i<children->size();++i)
-        candidates.emplace_back((*children)[i].get_priority(rating, tracker), i);
-    std::sort(candidates.begin(), candidates.end(), std::greater<std::tuple<priority, uint>>());
-    std::vector<uint> result(candidates.size());
-    std::transform(candidates.begin(), candidates.end(), result.begin(),
-        [](const auto& el){return std::get<1>(el);});
-    return result;
+std::tuple<std::vector<std::tuple<double,uint>>,std::vector<std::tuple<double,uint>>> node::split_children_by_exploration(state_tracker& tracker){
+    std::vector<std::tuple<priority, uint>> non_explored_candidates;
+    std::vector<std::tuple<priority, uint>> explored_candidates;
+    for(uint i=0;i<children->size();++i){
+        if(not (*children)[i].has_target() or not (*children)[i].get_target(tracker).rating.ever_visited())
+            non_explored_candidates.emplace_back((*children)[i].get_priority(rating, tracker), i);
+        else
+            explored_candidates.emplace_back((*children)[i].get_priority(rating, tracker), i);
+    }
+    return {non_explored_candidates, explored_candidates};
 }
 
 bool node::choose_nodal_state_for_simulation(node_address& current_address, state_tracker& tracker){
@@ -79,8 +80,10 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
     else{
         if(not children)
             children = tracker.generate_children();
-        auto priorities = get_children_sorted_by_priorities(tracker);
-        for(const auto el: priorities){
+        auto [non_explored_priorities, explored_priorities] = split_children_by_exploration(tracker);
+        while(not non_explored_priorities.empty()){
+            auto next_explored_child = std::max_element(non_explored_priorities.begin(), non_explored_priorities.end());
+            auto [_, el] = *next_explored_child;
             (*children)[el].create_target(tracker);
             current_address.push_back(el);
             tracker.go_along_semimove((*children)[el].get_label());
@@ -93,6 +96,27 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
                 return true;
             }
             else{
+                current_address.pop_back();
+                tracker.revert_last_semimove();
+            }
+            std::swap(*next_explored_child, non_explored_priorities.back());
+            non_explored_priorities.pop_back();
+        }
+        if(not explored_priorities.empty()){
+            auto [_, el] = *std::max_element(explored_priorities.begin(), explored_priorities.end());
+            (*children)[el].create_target(tracker);
+            current_address.push_back(el);
+            tracker.go_along_semimove((*children)[el].get_label());
+            bool search_result = (*children)[el]
+                .get_target(tracker)
+                .choose_nodal_state_for_simulation(current_address, tracker);
+            if(search_result){
+                rating.apply_simulation_trial();
+                status = nondeadend;
+                return true;
+            }
+            else{
+                // probably cannot happen but anyway...
                 current_address.pop_back();
                 tracker.revert_last_semimove();
             }

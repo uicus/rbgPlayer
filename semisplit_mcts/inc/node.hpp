@@ -42,7 +42,7 @@ class node{
         std::vector<std::tuple<double,uint>> create_list_of_semichildren_for_move(state_tracker& tracker)const;
         void get_node_address_by_move(const reasoner::move& m, state_tracker& tracker, uint current_move_position, node_address& address_so_far);
         std::tuple<uint, uint> get_child_match(const reasoner::move& m, uint current_move_position)const;
-        std::vector<uint> get_children_sorted_by_priorities(state_tracker& tracker);
+        std::tuple<std::vector<std::tuple<double,uint>>,std::vector<std::tuple<double,uint>>> split_children_by_exploration(state_tracker& tracker);
     public:
         node(void);
         node(const node&)=delete;
