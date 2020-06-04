@@ -83,7 +83,7 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
         auto [non_explored_priorities, explored_priorities] = split_children_by_exploration(tracker);
         while(not non_explored_priorities.empty()){
             auto next_explored_child = std::max_element(non_explored_priorities.begin(), non_explored_priorities.end());
-            auto [_, el] = *next_explored_child;
+            [[maybe_unused]] auto [_, el] = *next_explored_child;
             (*children)[el].create_target(tracker);
             current_address.push_back(el);
             tracker.go_along_semimove((*children)[el].get_label());
@@ -103,7 +103,7 @@ bool node::choose_nodal_state_for_simulation(node_address& current_address, stat
             non_explored_priorities.pop_back();
         }
         if(not explored_priorities.empty()){
-            auto [_, el] = *std::max_element(explored_priorities.begin(), explored_priorities.end());
+            [[maybe_unused]] auto [_, el] = *std::max_element(explored_priorities.begin(), explored_priorities.end());
             (*children)[el].create_target(tracker);
             current_address.push_back(el);
             tracker.go_along_semimove((*children)[el].get_label());
