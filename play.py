@@ -9,6 +9,7 @@ import time
 import argparse
 from argparse import RawTextHelpFormatter
 import signal
+import time
 
 def gen_directory(player_id):
     return "gen_"+str(player_id)
@@ -122,6 +123,9 @@ def extract_player_name(game, player_number):
     player_item = get_comma_separated_item(players_section, player_number-1)
     return get_player_name_from_players_item(player_item)
 
+def receive_preparation_seconds(server_socket):
+    return float(server_socket.receive_message())
+
 def write_game_to_file(server_socket, player_id):
     subprocess.run(["make", "distclean"]) # to avoid problems with mobile directories dependencies
     game = str(server_socket.receive_message(), "utf-8")
@@ -209,6 +213,11 @@ print("Successfully connected to server!")
 
 player_port, listener_queue, listener_thread = start_player_listener("localhost")
 
+preparation_seconds = receive_preparation_seconds(server_socket)
+print("Server claims to give",preparation_seconds,"for preparation")
+
+start_time = time.time()
+
 game = write_game_to_file(server_socket, player_port)
 print("Game rules written to:",game_path(player_port))
 
@@ -224,6 +233,10 @@ time.sleep(1.) # to give other players time to end compilation
 
 player_socket, player_process = start_and_connect_player("localhost", player_config, listener_queue, listener_thread)
 print("Player started on port",player_port)
+
+end_time = time.time()
+print("Player preparations took",end_time-start_time)
+server_socket.send_message(b'ready')
 
 server_to_client = Thread(target = forward_and_log, args = (server_socket, player_socket, "Server says-->","<--","server"))
 client_to_server = Thread(target = forward_and_log, args = (player_socket, server_socket, "Client says-->","<--","client"))
