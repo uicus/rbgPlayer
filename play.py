@@ -76,7 +76,6 @@ class PlayerConfig:
         self.address_to_connect = "127.0.0.1"
         self.port_to_connect = player_port
         self.number_of_threads = program_args.number_of_threads
-        self.miliseconds_per_move = program_args.miliseconds_per_move
         self.simulations_limit = program_args.simulations_limit
         self.semimoves_simulations_length = program_args.semimoves_simulations_length
         self.semimoves_tree_length = program_args.semimoves_tree_length
@@ -94,7 +93,6 @@ class PlayerConfig:
             config_file.write("const std::string ADDRESS = \""+self.address_to_connect+"\";\n")
             config_file.write("constexpr uint PORT = "+str(self.port_to_connect)+";\n")
             config_file.write("constexpr uint WORKERS_COUNT = "+str(max(self.number_of_threads-1,1))+";\n")
-            config_file.write("constexpr uint MILISECONDS_PER_MOVE = "+str(self.miliseconds_per_move)+";\n")
             config_file.write("constexpr uint SIMULATIONS_PER_MOVE = "+str(self.simulations_limit)+";\n")
             config_file.write("constexpr uint SEMIMOVES_SIMULATIONS_LENGTH = "+str(self.semimoves_simulations_length)+";\n")
             config_file.write("constexpr uint SEMIMOVES_TREE_LENGTH = "+str(self.semimoves_tree_length)+";\n")
@@ -202,7 +200,6 @@ parser.add_argument('player_kind', metavar='player-kind', type=str, choices=avai
 parser.add_argument('server_address', metavar='server-address', type=str, help='ip address of game manager')
 parser.add_argument('server_port', metavar='server-port', type=int, help='port number of game manager')
 parser.add_argument('--number-of-threads', dest='number_of_threads', type=int, default=2, help='number of player and makefile threads (default: 2)\nnote that player always consist of at least two worker threads: tree manager and simulator')
-parser.add_argument('--miliseconds-per-move', dest='miliseconds_per_move', type=int, default=2000, help='time limit for player\'s turn in miliseconds (default: 2000)')
 parser.add_argument('--simulations-limit', dest='simulations_limit', type=int, default=1000000, help='simulations limit for player\'s turn (default: 1000000)')
 parser.add_argument('--semimoves-simulations-length', dest='semimoves_simulations_length', type=int, default=1, help='length of semimoves in simulations module (default: 1)\nonly applicable to semisplit player kinds')
 parser.add_argument('--semimoves-tree-length', dest='semimoves_tree_length', type=int, default=1, help='length of semimoves in tree module (default: 1)\nonly applicable to semisplit player kinds')

@@ -78,7 +78,7 @@ reasoner::move remote_moves_receiver::receive_move(void){
 
 uint remote_moves_receiver::receive_miliseconds_limit(void){
     auto sdu = read_until('\0');
-    std::cout << "[PLAYER] Would have simulated for " << std::stod(sdu) << " seconds. Instead trying only " << MILISECONDS_PER_MOVE << " miliseconds." << std::endl;
-    // return lround(std::stod(sdu)*MILISECONDS_IN_SECONDS); // to return when bug in rbggamemanager is fixed
-    return lround(MILISECONDS_PER_MOVE);
+    double seconds_for_turn = std::stod(sdu);
+    std::cout << "[PLAYER] Have " << seconds_for_turn << " seconds for turn." << std::endl;
+    return lround(seconds_for_turn*MILISECONDS_IN_SECONDS);
 }
