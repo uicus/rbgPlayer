@@ -7,7 +7,7 @@
 constexpr int KEEPER = 0;
 constexpr double EXPECTED_MAX_SCORE = 100.0;
 constexpr double UNEXPLORED_SCORE = 10.0;
-constexpr double EXPLORATION_CONSTANT = 1.0; // TODO: find value
+constexpr double EXPLORATION_CONSTANT = 0.7;
 constexpr double INF = 10.0;
 constexpr double MILISECONDS_IN_SECONDS = 1000.0;
 constexpr uint MIN_REQUESTS_IN_CHANNEL = 10;
