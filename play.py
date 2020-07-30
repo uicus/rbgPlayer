@@ -125,9 +125,9 @@ def receive_preparation_seconds(server_socket):
     return float(server_socket.receive_message())
 
 def write_game_to_file(server_socket, player_id):
-    subprocess.run(["make", "distclean"]) # to avoid problems with mobile directories dependencies
+    #subprocess.run(["make", "distclean"]) # to avoid problems with mobile directories dependencies
     game = str(server_socket.receive_message(), "utf-8")
-    time.sleep(1.) # not to mess with other players' make clean invocations
+    #time.sleep(1.) # not to mess with other players' make clean invocations
     os.makedirs(gen_directory(player_id))
     os.makedirs(gen_inc_directory(player_id))
     os.makedirs(gen_src_directory(player_id))
@@ -142,7 +142,7 @@ def receive_player_name(server_socket, game):
 def compile_player(num_of_threads, player_kind, player_id):
     with Cd(gen_directory(player_id)):
         if player_kind in semisplit_players:
-            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fcustom-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
+            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fsemi-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
         else:
             subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
     shutil.move(gen_directory(player_id)+"/reasoner.cpp", gen_src_directory(player_id)+"/reasoner.cpp")
