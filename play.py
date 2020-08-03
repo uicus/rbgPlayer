@@ -20,12 +20,15 @@ def gen_src_directory(player_id):
 game_name = "game"
 def game_path(player_id):
     return gen_directory(player_id)+"/"+game_name+".rbg"
-available_players = set(["semisplitFlat", "semisplitMcts", "semisplitNodalMcts", "orthodoxFlat", "orthodoxMcts"])
 semisplit_players = set(["semisplitFlat", "semisplitMcts", "semisplitNodalMcts"])
+customsplit_players = set(["customsplitFlat", "customsplitMcts", "customsplitNodalMcts"])
+available_players = set(["orthodoxFlat", "orthodoxMcts"]) | semisplit_players | customsplit_players
 
 def player_kind_to_make_target(player_kind):
-    if player_kind == "semisplitNodalMcts":
+    if player_kind == "semisplitNodalMcts" or player_kind == "customsplitNodalMcts" or  player_kind == "customsplitMcts":
         return "semisplitMcts"
+    elif player_kind == "customsplitFlat":
+        return "seimsplitFlat"
     else:
         return player_kind
 
@@ -97,7 +100,8 @@ class PlayerConfig:
             config_file.write("constexpr uint SEMIMOVES_SIMULATIONS_LENGTH = "+str(self.semimoves_simulations_length)+";\n")
             config_file.write("constexpr uint SEMIMOVES_TREE_LENGTH = "+str(self.semimoves_tree_length)+";\n")
             config_file.write("const std::string NAME = \""+self.player_name+"\";\n")
-            config_file.write("constexpr bool SHOULD_REACH_NODAL_STATES = "+("true" if program_args.player_kind=="semisplitNodalMcts" else "false")+";\n")
+            config_file.write("constexpr bool SHOULD_REACH_NODAL_STATES = "+("true" if program_args.player_kind=="semisplitNodalMcts" or program_args.player_kind=="customsplitNodalMcts" else "false")+";\n")
+            config_file.write("constexpr bool SHOULD_REPARENT = "+("false" if program_args.player_kind in customsplit_players else "true")+";\n")
             config_file.write("\n")
             config_file.write("#endif\n")
 
@@ -142,7 +146,9 @@ def receive_player_name(server_socket, game):
 def compile_player(num_of_threads, player_kind, player_id):
     with Cd(gen_directory(player_id)):
         if player_kind in semisplit_players:
-            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fsemi-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
+            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fmod-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
+        elif player_kind in customsplit_players:
+            subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-fcustom-split", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
         else:
             subprocess.run(["../rbg2cpp/bin/rbg2cpp", "-o", "reasoner", "../"+game_path(player_id)]) # assume description is correct
     shutil.move(gen_directory(player_id)+"/reasoner.cpp", gen_src_directory(player_id)+"/reasoner.cpp")
